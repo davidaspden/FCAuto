@@ -509,8 +509,8 @@
 	<!--Open All Script-->
 	<script>
 		$(openAllLink).click(() => {
-			$($('#menubar a').get().reverse()).each((n, e) => {
-				console.log(n, e.href);
+			$($('#menubar a').get().reverse()).foreach((e) => {
+				console.log(e.href);
 				void (window.open(e.href, '_blank'));
 			})
 		});
