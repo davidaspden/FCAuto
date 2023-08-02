@@ -1,0 +1,109 @@
+p,
+td {
+  font-family: arial;
+}
+
+.titletext i {
+   font-size: small;
+}
+
+.titletext {
+  font-weight: bold;
+  text-align: center;
+}
+
+.title {
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #999999;
+  border-radius: 10px;
+  background: rgb(234, 231, 222);
+  padding: 5px;
+  font-weight: normal;
+  font-family: Arial, Helvetica, sans-serif;
+  display: table;
+  width: 600px;
+  text-align: center;
+}
+.title h1 {
+  margin-bottom: 0px;
+  padding-bottom: 3px;
+  border-bottom: 3px solid #f7b800;
+}
+
+.apmbutton {
+  border: 1px solid #ffc826;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: arial, helvetica, sans-serif;
+  padding: 10px 10px 10px 10px;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: bold;
+  color: #000000;
+  background-color: #ffd65e;
+  margin: 0px 3px 0px 3px;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#ffd65e),
+    to(#ce9a01)
+  );
+}
+
+.apmbutton:hover {
+  border: 1px solid #f7b800;
+  background-color: #ffc92b;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#ffc92b),
+    to(#ce9a01)
+  );
+  
+}
+
+input[type="text"] {
+  background: #ffffff;
+  border-radius: 3px;
+  border: solid 1px #999999;
+  height: 20px;
+  padding-left: 10px;
+  width: 200px;
+}
+
+.mainPrint {
+  display: flex;
+  align-items:center;
+  justify-content: center;
+  
+}
+#presets{
+  padding-top: 20px;
+   display: flex; text-align: center; border-top: 2px solid #ffdd55; align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  animation: rotating 2s linear infinite;
+}
+
+svg:hover {
+  stroke: #a37f05 !important;
+}
