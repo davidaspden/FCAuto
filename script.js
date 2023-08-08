@@ -22,6 +22,27 @@ function getStatus(url, funcvalid, funcinvalid) {
   }
 }
 //////////////////////////////////////////////////////////
+//A way yo provide the badge across the session
+//////////////////////////////////////////////////////////
+function getQueryVariable(variable)
+{
+     var query = window.location.search.substring(1);
+     if(query!=""){
+      var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+             var pair = vars[i].split("=");
+             if(pair[0] == variable){
+              return pair[1];
+            }
+          else{
+            return false;
+          }
+        }
+    }
+}
+var badgeID = getQueryVariable("badgeID");
+
+//////////////////////////////////////////////////////////
 function asciihex(str) {
   var text = "";
   for (var i = 0, l = str.length; i < l; i++) {
@@ -45,6 +66,12 @@ function printLabel() {
 //////////////////////////////////////////////////////////
 function printAnylabel(b, t, d,n) {
   getStatus(
+    if(badgeID){
+      badge = badgeID;
+    }
+    else{
+      badge= "13372023"
+    }
     "http://localhost:5965/printer?action=print&type=barcode&" +
       "data=" +
       encodeURIComponent(asciihex(b)) +
@@ -53,7 +80,7 @@ function printAnylabel(b, t, d,n) {
       "&quantity=" +
       encodeURIComponent(parseInt(n)) +
       "&badgeid=" +
-      encodeURIComponent(parseInt(13371337)) +
+      encodeURIComponent(parseInt(badge)) +
       "&desc=" +
       encodeURIComponent(asciihex(d)) +
       "&seq=" +
