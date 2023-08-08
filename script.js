@@ -64,7 +64,7 @@ function printLabel() {
 //////////////////////////////////////////////////////////
 function printAnylabel(b, t, d,n) {
   var badge;
-  if(badgeID==false){
+  if(badgeID!=false){
     badge = badgeID;
   }
   else{
