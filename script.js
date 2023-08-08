@@ -34,11 +34,9 @@ function getQueryVariable(variable)
              if(pair[0] == variable){
               return pair[1];
             }
-          else{
-            return false;
-          }
         }
     }
+    return false;
 }
 var badgeID = getQueryVariable("badgeID");
 
@@ -65,13 +63,15 @@ function printLabel() {
 }
 //////////////////////////////////////////////////////////
 function printAnylabel(b, t, d,n) {
+  var badge;
+  if(badgeID==false){
+    badge = badgeID;
+  }
+  else{
+    badge= "13372023"
+  }
   getStatus(
-    if(badgeID){
-      badge = badgeID;
-    }
-    else{
-      badge= "13372023"
-    }
+    
     "http://localhost:5965/printer?action=print&type=barcode&" +
       "data=" +
       encodeURIComponent(asciihex(b)) +
