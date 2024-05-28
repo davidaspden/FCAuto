@@ -107,7 +107,7 @@
             </div>
         </div>
     </div>
-    <div class=\"a-box a-last\">
+    <div class='a-box a-last'>
         <div class=\"a-box-inner\">
             <table id=\"table-inventory\" class=\"a-bordered a-horizontal-stripes\">
                 <thead>
@@ -532,3 +532,12 @@
         </div>
     </div>
 </div>
+<style>
+    .warn {
+        color: red;
+    }
+</style>
+<script>
+    regex = /(<(td)[\s\S](?!<td)*?(WORK_ORDER){1}[\s\S]*?<\/\2>)/g
+    document.querySelectorAll("div.a-last")[0].innerHTML = document.querySelectorAll("div.a-last")[0].innerHTML.replace(regex, "<td class=\"warn\">$3</td>");
+</script>
