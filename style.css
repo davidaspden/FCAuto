@@ -27,6 +27,12 @@ td {
   display: table;
   width: 600px;
   text-align: center;
+  
+  transition: 0.1s 0.1s cubic-bezier(.93,.43,.56,.9);
+}
+
+.title.rotating-border:hover {
+  --border-size: .2rem;
 }
 .title h1 {
   margin-bottom: 0px;
