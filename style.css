@@ -113,7 +113,17 @@ input[type="text"] {
   padding-left: 10px;
   width: 200px;
   box-shadow: 0 0.3rem 0.5rem rgba(41, 38, 38, 0.199);
+  transition: 0.1s 0.1s cubic-bezier(.93,.43,.56,.9);
 }
+
+input[type="text"]:focus {
+  border-bottom: 3px solid #0a5986c5;
+  outline: none;
+  padding: 4px;
+}
+
+
+
 
 .mainPrint {
   display: flex;
