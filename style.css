@@ -70,13 +70,49 @@ td {
   
 }
 
+.spdbutton {
+  border: 1px solid #170675;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: arial, helvetica, sans-serif;
+  padding: 10px 10px 10px 10px;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #23a2ec;
+  margin: 0px 3px 0px 3px;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#5ec4ff),
+    to(#2001ce)
+  );
+}
+
+.spdbutton:hover {
+  border: 1px solid #8cd8fc;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#5ec4ffaf),
+    to(#2001cea9)
+  );
+  
+}
+
 input[type="text"] {
   background: #ffffff;
   border-radius: 3px;
-  border: solid 1px #999999;
+  border: solid 1px #ddbd0ada;
   height: 20px;
   padding-left: 10px;
   width: 200px;
+  box-shadow: 0 0.3rem 0.5rem rgba(41, 38, 38, 0.199);
 }
 
 .mainPrint {
