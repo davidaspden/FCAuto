@@ -6,72 +6,7 @@
   <link rel="stylesheet" href="./style.css">
   <link href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAC//QAAv/0AAL/9AAClJQAApSUAAKUlAAClJQAApSUAAKUlAAClJQAApSUAAKUlAAClJQAApSUAAP//AAA=" rel="icon" type="image/x-icon" />
 <style>
-.title {
-    box-shadow: 0 0.75rem 0.95rem #0003;
-    margin: 0 auto;
-    background: none;
-}
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  background-color: #eee;
-  text-align: center
-}
-
-@keyframes spin {
-  from {transform: translate(-50%, -50%) rotate(0);}
-  to   {transform: translate(-50%, -50%) rotate(360deg);}
-}
-
-.rotating-border {
-  --border-radius: 0.5rem;
-  --border-size: 0.15rem;
-  --border-bg: conic-gradient(blue, aqua, blue, blue);
-  --padding: 4px;
-  
-  position: relative;
-  overflow: hidden;
-  padding: calc(var(--padding) + var(--border-size));
-  border-radius: var(--border-radius);
-  
-  &::before {
-    content: '';
-    display: block;
-    background: var(--border-bg);
-    width: calc(100% * 1.41421356237);
-    padding-bottom: calc(100% * 1.41421356237);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 100%;
-    z-index: -2;
-    animation: spin 5s linear infinite;
-  }
- 
-  &::after{
-    content: '';
-    position: absolute;
-    inset: var(--border-size);
-    background: linear-gradient(to top, #c4c5c7 0%, #dcdddf 52%, #ebebeb 100%);
-    z-index: -1;
-    border-radius: calc(var(--border-radius) - var(--border-size));
-  }
-}
-
-#tag {
-  display: flex;
-  justify-content: right;
-  height: 20px;
-  font-size: 8px;
-  margin-bottom: -10px;
-  color: #33f
-}
 </style>
 
 </head>
@@ -97,7 +32,7 @@ body {
 <path d="M14.2624 5.40607L13.8714 4.42848C13.6471 3.86771 13.104 3.5 12.5 3.5C11.896 3.5 11.3529 3.86771 11.1286 4.42848L10.7376 5.40607C10.5857 5.78585 10.2869 6.08826 9.90901 6.2448C9.53111 6.40133 9.10603 6.39874 8.73006 6.23761L7.76229 5.82285C7.20716 5.58494 6.56311 5.70897 6.13604 6.13604C5.70897 6.56311 5.58494 7.20716 5.82285 7.76229L6.23761 8.73006C6.39874 9.10602 6.40133 9.53111 6.2448 9.90901C6.08826 10.2869 5.78585 10.5857 5.40607 10.7376L4.42848 11.1286C3.86771 11.3529 3.5 11.896 3.5 12.5C3.5 13.104 3.86771 13.6471 4.42848 13.8714L5.40607 14.2624C5.78585 14.4143 6.08826 14.7131 6.2448 15.091C6.40133 15.4689 6.39874 15.894 6.23761 16.2699L5.82285 17.2377C5.58494 17.7928 5.70897 18.4369 6.13604 18.864C6.56311 19.291 7.20716 19.4151 7.76229 19.1772L8.73006 18.7624C9.10603 18.6013 9.53111 18.5987 9.90901 18.7552C10.2869 18.9117 10.5857 19.2141 10.7376 19.5939L11.1286 20.5715C11.3529 21.1323 11.896 21.5 12.5 21.5C13.104 21.5 13.6471 21.1323 13.8714 20.5715L14.2624 19.5939C14.4143 19.2141 14.7131 18.9117 15.091 18.7552C15.4689 18.5987 15.894 18.6013 16.2699 18.7624L17.2377 19.1771C17.7928 19.4151 18.4369 19.291 18.864 18.864C19.291 18.4369 19.4151 17.7928 19.1771 17.2377L18.7624 16.2699C18.6013 15.894 18.5987 15.4689 18.7552 15.091C18.9117 14.7131 19.2141 14.4143 19.5939 14.2624L20.5715 13.8714C21.1323 13.6471 21.5 13.104 21.5 12.5C21.5 11.896 21.1323 11.3529 20.5715 11.1286L19.5939 10.7376C19.2141 10.5857 18.9117 10.2869 18.7552 9.90901C18.5987 9.53111 18.6013 9.10602 18.7624 8.73006L19.1772 7.76229C19.4151 7.20716 19.291 6.56311 18.864 6.13604C18.4369 5.70897 17.7928 5.58494 17.2377 5.82285L16.2699 6.23761C15.894 6.39874 15.4689 6.40133 15.091 6.2448C14.7131 6.08826 14.4143 5.78585 14.2624 5.40607Z" stroke-width="1.2"/>
 <path d="M16.5 12.5C16.5 14.7091 14.7091 16.5 12.5 16.5C10.2909 16.5 8.5 14.7091 8.5 12.5C8.5 10.2909 10.2909 8.5 12.5 8.5C14.7091 8.5 16.5 10.2909 16.5 12.5Z" stroke-width="1.2"/>
 </svg></a><br />
-      <p id="presets">Presets:
+      <div id="presets"><p>Presets:</p>
         <a class="apmbutton" onClick='printAnylabel("Non Sort","Non Sort","ISS Exception",2);'>Non Sort</a>
         <a class="apmbutton" onClick='printAnylabel("Cubiscan","Cubiscan","ISS Exception",2);'>Cubiscan</a>
         <a class="apmbutton" onClick='printAnylabel("Hazmat","Hazmat","ISS Exception",2);'>Hazmat</a>
@@ -106,12 +41,12 @@ body {
         <a class="apmbutton" onClick='printAnylabel("Unknown Asin","Unknown Asin","ISS Exception",2);'>Unknown Asin</a>
         <a class="apmbutton" onClick='printAnylabel("Pet Product","Pet Product","ISS Exception",2);'>Pet Product</a>
         <a class="apmbutton" onClick='printAnylabel("Defective PS","Defective PS","ISS Exception",2);'>Defective PS</a>
-        </p>
+      </div>
         <p><a class="spdbutton" onClick='printAnylabel("1","1","Sideline Speed Baby!",1);'>&copy Speed Sideliner Label</a></p>
     </div>
     <div id="tag">&copy Alabama State Trooper 1337</div>
   </div>
- 
+  <div id="printAnim"><svg id="barcode" width="376px" height="110px" x="0px" y="0px" viewBox="0 0 376 142" xmlns="http://www.w3.org/2000/svg" version="1.1" style="transform: translate(0px, 0px);"><rect x="0" y="0" width="376" height="142" style="fill:#ffffff;"/><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"/><rect x="6" y="0" width="2" height="100"/><rect x="12" y="0" width="2" height="100"/><rect x="22" y="0" width="2" height="100"/><rect x="26" y="0" width="4" height="100"/><rect x="36" y="0" width="2" height="100"/><rect x="44" y="0" width="2" height="100"/><rect x="50" y="0" width="2" height="100"/><rect x="54" y="0" width="4" height="100"/><rect x="66" y="0" width="8" height="100"/><rect x="76" y="0" width="2" height="100"/><rect x="82" y="0" width="2" height="100"/><rect x="88" y="0" width="2" height="100"/><rect x="92" y="0" width="4" height="100"/><rect x="100" y="0" width="2" height="100"/><rect x="110" y="0" width="4" height="100"/><rect x="116" y="0" width="4" height="100"/><rect x="124" y="0" width="4" height="100"/><rect x="132" y="0" width="4" height="100"/><rect x="142" y="0" width="2" height="100"/><rect x="150" y="0" width="2" height="100"/><rect x="154" y="0" width="2" height="100"/><rect x="158" y="0" width="8" height="100"/><rect x="170" y="0" width="2" height="100"/><rect x="176" y="0" width="4" height="100"/><rect x="182" y="0" width="4" height="100"/><rect x="190" y="0" width="4" height="100"/><rect x="198" y="0" width="2" height="100"/><rect x="206" y="0" width="2" height="100"/><rect x="214" y="0" width="4" height="100"/><rect x="220" y="0" width="2" height="100"/><rect x="228" y="0" width="8" height="100"/><rect x="238" y="0" width="2" height="100"/><rect x="242" y="0" width="2" height="100"/><rect x="250" y="0" width="8" height="100"/><rect x="260" y="0" width="2" height="100"/><rect x="264" y="0" width="4" height="100"/><rect x="272" y="0" width="2" height="100"/><rect x="276" y="0" width="2" height="100"/><rect x="286" y="0" width="4" height="100"/><rect x="294" y="0" width="4" height="100"/><rect x="300" y="0" width="4" height="100"/><rect x="308" y="0" width="6" height="100"/><rect x="316" y="0" width="2" height="100"/><rect x="320" y="0" width="8" height="100"/><rect x="330" y="0" width="4" height="100"/><rect x="340" y="0" width="6" height="100"/><rect x="348" y="0" width="2" height="100"/><rect x="352" y="0" width="4" height="100"/></g></svg></div>
 <!-- partial -->
   <script  src="./script.js"></script>
 
