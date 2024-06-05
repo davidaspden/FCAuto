@@ -62,6 +62,20 @@ function printLabel() {
   printAnylabel(barcode, displayText, "",quant);
 }
 //////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+function addPreset() {
+  var barcode = document.getElementById("barcodedata").value;
+  var displayText = document.getElementById("displaytext").value;
+  barcode = barcode.trim();
+  pre = document.createElement('a');
+  pre.innerHTML = displayText;
+  pre.classList.add('apmbutton');
+  pre.setAttribute('onClick','printAnylabel("'+displayText+'","'+displayText+'","ISS Exception",2);')
+  presets = document.getElementById("presets");
+  presets.appendChild(pre)
+}
+//////////////////////////////////////////////////////////
+
 function printAnylabel(b, t, d,n) {
   var badge;
   if(badgeID!=false){
