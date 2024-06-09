@@ -247,7 +247,7 @@ input[type="text"]:focus {
   border-radius: 0 0 1rem 1rem;
   z-index: 1;
   margin-top: -90px;
-  transition: margin-top 3s ease-in-out;
+  transition: margin-top 1s ease-in-out;
   border: 1px solid blue;
   border-top: none;
   overflow: hidden;
@@ -255,10 +255,12 @@ input[type="text"]:focus {
 }
 
 #printAnim:hover{
-  animation: printRoll 1s forwards;
+  margin-top:-30px;
+  transition: margin-top 1s ease-in-out;
 }
 #printAnim:hover:after{
   transform: scaleX(1);
+  transition: transform 1s ease-in-out;
 }
 
 #printAnim:after{
@@ -270,15 +272,4 @@ input[type="text"]:focus {
   display: block;
   transform: scaleX(0);
   transition: transform 250ms ease-in-out;
-}
-
-@keyframes printRoll{
-  0% {
-    margin-top: -90px;
-  }
-  100% {
-    margin-top:-30px;
-  }
-
-  
 }
