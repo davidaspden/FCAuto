@@ -71,7 +71,7 @@ function addPreset() {
   }
   barcode = barcode.trim();
   pre = document.createElement('a');
-  pre.innerHTML = displayText;
+  pre.innerHTML = displayText != '' ? displayText : barcode;
   pre.classList.add('apmbutton');
   pre.setAttribute('onClick','printAnylabel("'+displayText !='' ? displayText : barcode+'","'+barcodeText != '' ? barcodeText : displayText +'","ISS Exception",2);')
   presets = document.getElementById("presets");
