@@ -213,6 +213,30 @@ td {
       to(#ce0101));
 }
 
+.stripbuttonF {
+  cursor: default;
+  user-select: none;
+  box-sizing: border-box;
+  border: 1px solid #ec850e;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: arial, helvetica, sans-serif;
+  padding: 10px 10px 10px 10px;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #23a2ec;
+  margin: 0px 3px 0px 3px;
+  background-image: -webkit-gradient(linear,
+      left top,
+      left bottom,
+      from(#e79b44),
+      to(#ec850e));
+}
+
 .stripbutton:hover {
   border: 2px solid #b8129c;
 

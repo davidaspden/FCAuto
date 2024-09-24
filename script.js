@@ -106,3 +106,46 @@ function printAnylabel(b, t, d,n) {
     printFailed
   );
 }
+
+function printQS(){
+  for(let k=1; k<11; k++){
+    getStatus(
+      "http://localhost:5965/printer?action=print&type=barcode&" +
+        "data=" +
+        encodeURIComponent(asciihex(k)) +
+        "&text=" +
+        encodeURIComponent(asciihex(k)) +
+        "&quantity=" +
+        encodeURIComponent(parseInt(1)) +
+        "&badgeid=" +
+        encodeURIComponent(parseInt(0)) +
+        "&desc=" +
+        encodeURIComponent(asciihex("------")) +
+        "&seq=" +
+        encodeURIComponent(genId()),
+      function () {},
+      printFailed
+    );
+    printBlank();
+  }
+}
+
+function printBlank(){
+  getStatus(
+    "http://localhost:5965/printer?action=print&type=barcode&" +
+      "data=" +
+      encodeURIComponent(asciihex()) +
+      "&text=" +
+      encodeURIComponent(asciihex()) +
+      "&quantity=" +
+      encodeURIComponent(parseInt(1)) +
+      "&badgeid=" +
+      encodeURIComponent(parseInt(0)) +
+      "&desc=" +
+      encodeURIComponent(asciihex("")) +
+      "&seq=" +
+      encodeURIComponent(genId()),
+    function () {},
+    printFailed
+  );
+}
