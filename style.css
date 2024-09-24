@@ -16,6 +16,8 @@ body {
   background-color: #eee;
   text-align: center;
   flex-direction: column;
+  font-family:  Amazon Ember Display, Arial, sans-serif;
+  font-weight: 400;
 }
 
 @keyframes spin {
@@ -84,8 +86,7 @@ body {
   flex-direction: column;
 }
 
-p,
-td {
+p,td {
   font-family: arial;
 }
 
@@ -110,8 +111,8 @@ td {
   border-radius: 10px;
   background: rgb(234, 231, 222);
   padding: 5px;
-  font-weight: normal;
-  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-family: Amazon Ember Display, Arial, sans-serif;
   display: table;
   text-align: center;
   z-index: 2;
