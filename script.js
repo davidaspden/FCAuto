@@ -43,6 +43,9 @@ var badgeID = getQueryVariable("badgeID");
 //////////////////////////////////////////////////////////
 function asciihex(str) {
   var text = "";
+  if(!str){
+    return text;
+  }
   for (var i = 0, l = str.length; i < l; i++) {
     var hex = Number(str.charCodeAt(i)).toString(16);
     text += hex;
