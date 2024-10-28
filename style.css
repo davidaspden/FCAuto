@@ -30,6 +30,10 @@ body {
   }
 }
 
+#containerBarcode {
+  position: relative;
+}
+
 .rotating-border {
   --border-radius: 0.5rem;
   --border-size: 0.15rem;
