@@ -1,3 +1,9 @@
+:root {
+  --border-radius: 0.5rem;
+  --border-size: 0.15rem;
+  --border-bg: conic-gradient(blue, aqua, blue, blue);
+  --padding: 4px;
+}
 .title {
   box-shadow: 0 0.75rem 0.95rem #0003;
   margin: 0 auto;
@@ -37,11 +43,6 @@ body {
 }
 
 .rotating-border {
-  --border-radius: 0.5rem;
-  --border-size: 0.15rem;
-  --border-bg: conic-gradient(blue, aqua, blue, blue);
-  --padding: 4px;
-
   position: relative;
   overflow: hidden;
   padding: calc(var(--padding) + var(--border-size));
