@@ -745,7 +745,6 @@
 		<a target="_blank" href="https://app.chime.aws"><i>Web based chime!</i>Chime</a>
 		<a target="_blank" href="https://pandash.amazon.com/"><i>Hazmat checking!</i>Pandash - Hazmat</a>
 	</div>
-	<div><button id="openAllLink">Open All</button></div>
 	<div><a target="_blank" href="https://chrome.google.com/webstore/detail/dhdgffkkebhmkfjojejmpbldmpobfkfo">
 			Chrome Tampermonkey</a>
 		<br /><br />
@@ -753,15 +752,7 @@
 				Tampermonkey Script</a></div>
 		<div id="clock"></div>
 	</div>
-	<!--Open All Script-->
-	<script>
-		$(openAllLink).click(() => {
-			[...document.querySelectorAll('#menuBar a')].reverse().forEach((e) => {
-				console.log(e.href);
-				void (window.open(e.href, '_blank'));
-			})
-		});
-	</script>
+	
 	<!--Clock Script-->
 	<script>
 		function startTime() {
@@ -782,7 +773,7 @@
 		startTime();
 	</script>
 	<div id="menuToggle">
-		<input type="checkbox" />
+		<input type="checkbox" id="menuToggleInput"/>
 		<span></span>
 		<span></span>
 		<span></span>
