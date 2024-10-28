@@ -33,13 +33,7 @@ body {
 #containerBarcode {
   position: relative;
   overflow: hidden;
-  width: calc(100% * 1.41421356237);
-    padding-bottom: calc(100% * 1.41421356237);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 100%;
+    border-radius: calc(var(--border-radius) - var(--border-size));
 }
 
 .rotating-border {
