@@ -60,7 +60,7 @@ body {
     content: '';
     position: absolute;
     inset: var(--border-size);
-    background: linear-gradient(to top, rgb(162, 189, 243) 0%, #a9c5ff 52%, #a8baf7 100%);
+    background: linear-gradient(to top, rgb(75, 140, 151) 0%, #3d67bb 52%, #6a0ffc 100%);
     z-index: -1;
     border-radius: calc(var(--border-radius) - var(--border-size));
   }

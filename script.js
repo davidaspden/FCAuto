@@ -119,7 +119,7 @@ function printQS(){
         "&text=" +
         encodeURIComponent(asciihex(k)) +
         "&quantity=" +
-        encodeURIComponent(parseInt(1)) +
+        encodeURIComponent(parseInt(2)) +
         "&badgeid=" +
         encodeURIComponent(parseInt(0)) +
         "&desc=" +
@@ -129,26 +129,6 @@ function printQS(){
       function () {},
       printFailed
     );
-    printBlank();
   }
 }
 
-function printBlank(){
-  getStatus(
-    "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=" +
-      encodeURIComponent(asciihex()) +
-      "&text=" +
-      encodeURIComponent(asciihex()) +
-      "&quantity=" +
-      encodeURIComponent(parseInt(1)) +
-      "&badgeid=" +
-      encodeURIComponent(parseInt(0)) +
-      "&desc=" +
-      encodeURIComponent(asciihex("")) +
-      "&seq=" +
-      encodeURIComponent(genId()),
-    function () {},
-    printFailed
-  );
-}
