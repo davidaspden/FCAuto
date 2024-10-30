@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exceptions Barcode Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <link rel="stylesheet" href="./style.css">
   <link href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAC//QAAv/0AAL/9AAClJQAApSUAAKUlAAClJQAApSUAAKUlAAClJQAApSUAAKUlAAClJQAApSUAAP//AAA=" rel="icon" type="image/x-icon">
 </head>
@@ -44,12 +45,28 @@
           <a class="stripbuttonF" onClick='printQS()'>&equiv; Quantity Stow Speed Sheet</a></p>
           <p><a class="stripbutton" onClick='printAnylabel("ISS Exceptions","ISS Exceptions","ISS Exceptions Do Not Stow!",10);'>&equiv; ISS Exceptions Uboat</a>
         <a class="stripbutton" onClick='printAnylabel("ISS Exceptions","Damaged Items Uboat","Damaged Items Uboat Do Not Stow!",10);'>&equiv; Damaged Items Uboat</a></p>
-        
+        <div id="controlBarcodes">
+        <svg id="barcodeST"></svg>
+        <svg id="barcodeDT"></svg></div>
     </div>
     <div id="tag">&copy; Alabama State Trooper 1337</div>
   </div>
 </div>
   <div id="printAnim"><svg id="barcode" width="376px" height="110px" x="0px" y="0px" viewBox="0 0 376 142" xmlns="http://www.w3.org/2000/svg" version="1.1" style="transform: translate(0px, 0px);"><rect x="0" y="0" width="376" height="142" style="fill:#ffffff;"/><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"/><rect x="6" y="0" width="2" height="100"/><rect x="12" y="0" width="2" height="100"/><rect x="22" y="0" width="2" height="100"/><rect x="26" y="0" width="4" height="100"/><rect x="36" y="0" width="2" height="100"/><rect x="44" y="0" width="2" height="100"/><rect x="50" y="0" width="2" height="100"/><rect x="54" y="0" width="4" height="100"/><rect x="66" y="0" width="8" height="100"/><rect x="76" y="0" width="2" height="100"/><rect x="82" y="0" width="2" height="100"/><rect x="88" y="0" width="2" height="100"/><rect x="92" y="0" width="4" height="100"/><rect x="100" y="0" width="2" height="100"/><rect x="110" y="0" width="4" height="100"/><rect x="116" y="0" width="4" height="100"/><rect x="124" y="0" width="4" height="100"/><rect x="132" y="0" width="4" height="100"/><rect x="142" y="0" width="2" height="100"/><rect x="150" y="0" width="2" height="100"/><rect x="154" y="0" width="2" height="100"/><rect x="158" y="0" width="8" height="100"/><rect x="170" y="0" width="2" height="100"/><rect x="176" y="0" width="4" height="100"/><rect x="182" y="0" width="4" height="100"/><rect x="190" y="0" width="4" height="100"/><rect x="198" y="0" width="2" height="100"/><rect x="206" y="0" width="2" height="100"/><rect x="214" y="0" width="4" height="100"/><rect x="220" y="0" width="2" height="100"/><rect x="228" y="0" width="8" height="100"/><rect x="238" y="0" width="2" height="100"/><rect x="242" y="0" width="2" height="100"/><rect x="250" y="0" width="8" height="100"/><rect x="260" y="0" width="2" height="100"/><rect x="264" y="0" width="4" height="100"/><rect x="272" y="0" width="2" height="100"/><rect x="276" y="0" width="2" height="100"/><rect x="286" y="0" width="4" height="100"/><rect x="294" y="0" width="4" height="100"/><rect x="300" y="0" width="4" height="100"/><rect x="308" y="0" width="6" height="100"/><rect x="316" y="0" width="2" height="100"/><rect x="320" y="0" width="8" height="100"/><rect x="330" y="0" width="4" height="100"/><rect x="340" y="0" width="6" height="100"/><rect x="348" y="0" width="2" height="100"/><rect x="352" y="0" width="4" height="100"/></g></svg></div>
   <script  src="./script.js"></script>
+  <script>
+    JsBarcode("#barcodeDT", "\t\t", {
+  height: 25,
+  text: "Double Tab",
+  fontOptions: "bold",
+  fontSize: 10,
+  font: "Arial"
+});
+JsBarcode("#barcodeST", "\t", {
+  height: 25,
+  text: "Single Tab",
+  fontOptions: "bold",fontSize: 10, font: "Arial"
+});
+  </script>
 </body>
 </html>

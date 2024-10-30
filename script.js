@@ -110,14 +110,36 @@ function printAnylabel(b, t, d,n) {
   );
 }
 
+function printSpecial(t,d,n) {
+  var badge = 1;
+  getStatus(
+    
+    "http://localhost:5965/printer?action=print&type=barcode&" +
+      "data=" +
+      encodeURIComponent(asciihex(t)) +
+      "&text=" +
+      encodeURIComponent(asciihex(t)) +
+      "&quantity=" +
+      encodeURIComponent(parseInt(n)) +
+      "&badgeid=" +
+      encodeURIComponent(parseInt(badge)) +
+      "&desc=" +
+      encodeURIComponent(asciihex(d)) +
+      "&seq=" +
+      encodeURIComponent(genId()),
+    function () {},
+    printFailed
+  );
+}
+
 function printQS(){
   for(let k=1; k<11; k++){
     getStatus(
       "http://localhost:5965/printer?action=print&type=barcode&" +
         "data=" +
-        encodeURIComponent(asciihex(k)) +
+        encodeURIComponent(asciihex((k).toString())) +
         "&text=" +
-        encodeURIComponent(asciihex(k)) +
+        encodeURIComponent(asciihex((k).toString())) +
         "&quantity=" +
         encodeURIComponent(parseInt(2)) +
         "&badgeid=" +

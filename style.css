@@ -35,6 +35,13 @@ body {
     transform: translate(-50%, -50%) rotate(360deg);
   }
 }
+#controlBarcodes {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 150px;
+}
 
 #containerBarcode {
   position: relative;
@@ -67,7 +74,7 @@ body {
     content: '';
     position: absolute;
     inset: var(--border-size);
-    background: linear-gradient(to top, rgb(75, 140, 151) 0%, #3d67bb 52%, #6a0ffc 100%);
+    background: linear-gradient(to top, rgb(59, 171, 190) 0%, #3d67bb 52%, #eb9444 100%);
     z-index: -1;
     border-radius: calc(var(--border-radius) - var(--border-size));
   }
