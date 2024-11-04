@@ -40,14 +40,17 @@
         <a class="apmbutton" onClick='printAnylabel("Unknown Asin","Unknown Asin","ISS Exception",2);'>Unknown Asin</a>
         <a class="apmbutton" onClick='printAnylabel("Pet Product","Pet Product","ISS Exception",2);'>Pet Product</a>
         <a class="apmbutton" onClick='printAnylabel("Defective PS","Defective PS","ISS Exception",2);'>Defective PS</a>
+        <a class="apmbutton" onClick='printAnylabel("Damaged","Damaged","ISS Exception",2);'>Damaged</a>
       </div>
+      <div id="utilities">
         <p><a class="spdbutton" onClick='printAnylabel("1","1","Sideline Speed Baby!",1);'>&copy; Speed Sideliner Label</a>
           <a class="stripbuttonF" onClick='printQS()'>&equiv; Quantity Stow Speed Sheet</a></p>
           <p><a class="stripbutton" onClick='printAnylabel("ISS Exceptions","ISS Exceptions","ISS Exceptions Do Not Stow!",10);'>&equiv; ISS Exceptions Uboat</a>
         <a class="stripbutton" onClick='printAnylabel("ISS Exceptions","Damaged Items Uboat","Damaged Items Uboat Do Not Stow!",10);'>&equiv; Damaged Items Uboat</a></p>
-        <div id="controlBarcodes">
-        <svg id="barcodeST"></svg>
-        <svg id="barcodeDT"></svg></div>
+      </div>
+      <div id="controlBarcodes">
+        <a class="spdbutton" onClick='printTab()'><svg id="barcodeST"></svg></a>
+        <a class="spdbutton"onClick='printDoubleTab()'><svg id="barcodeDT"></svg></a></div>
     </div>
     <div id="tag">&copy; Alabama State Trooper 1337</div>
   </div>

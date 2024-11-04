@@ -4,6 +4,14 @@
   --border-bg: conic-gradient(blue, aqua, blue, blue);
   --padding: 4px;
 }
+
+@font-face {
+  font-family: amazon ember display;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Amazon Ember Display'), url('https://fonts.cdnfonts.com/s/67521/Amazon Ember Display.woff') format('woff')
+}
+
 .title {
   box-shadow: 0 0.75rem 0.95rem #0003;
   margin: 0 auto;
@@ -74,7 +82,7 @@ body {
     content: '';
     position: absolute;
     inset: var(--border-size);
-    background: linear-gradient(to top, rgb(59, 171, 190) 0%, #3d67bb 52%, #eb9444 100%);
+    background: linear-gradient(to top, rgb(59, 171, 190) 0%, #3d67bb 52%, #0291f1f6 100%);
     z-index: -1;
     border-radius: calc(var(--border-radius) - var(--border-size));
   }
@@ -253,7 +261,7 @@ p,td {
 }
 
 .stripbutton:hover {
-  border: 2px solid #b8129c;
+  border: 1px solid #e93dcc;
 
 }
 
@@ -301,9 +309,11 @@ input[type="text"]:focus {
 }
 
 #presets {
-  padding-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   display: flex;
-  border-top: 2px solid #ffdd55;
+  border-top: 2px solid #200388;
+  border-bottom: 2px solid #200388;
   justify-content: center;
   flex-direction: row;
   align-items: center;
@@ -362,4 +372,11 @@ input[type="text"]:focus {
   display: block;
   transform: scaleX(0);
   transition: transform 250ms ease-in-out;
+}
+
+#utilities, #controlBarcodes {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 10px 0;
+  border-bottom: 2px solid #ffffff; /* Example value */
 }
