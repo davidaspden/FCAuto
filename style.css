@@ -380,3 +380,8 @@ input[type="text"]:focus {
   padding: 10px 0 10px 0;
   border-bottom: 2px solid #ffffff; /* Example value */
 }
+
+#utilities {
+  flex-wrap: wrap;
+  gap: 10px 10px;
+}

@@ -88,7 +88,7 @@ function printAnylabel(b, t, d,n) {
     badge = badgeID;
   }
   else{
-    badge= "13372023"
+    badge= "8008135"
   }
   getStatus(
     
@@ -114,7 +114,7 @@ function printTab() {
   var badge = 1;
   getStatus(
     "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=654964&text=" +
+      "data=09&text=" +
       encodeURIComponent(asciihex("Single Tab")) +
       "&quantity=" +
       encodeURIComponent(1) +
@@ -133,7 +133,7 @@ function printDoubleTab() {
   var badge = 1;
   getStatus(
     "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=65494964&text=" +
+      "data=0909&text=" +
       encodeURIComponent(asciihex("Double Tab")) +
       "&quantity=" +
       encodeURIComponent(1) +
@@ -179,6 +179,27 @@ async function printQS() {
       break; // Stop further requests if any fail
     }
   }
+}
+
+//Get a now() and format it for making a barcode.
+function printNow() {
+  // Get the current date and time
+var now = new Date();
+// Array of month abbreviations
+var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// Get the month abbreviation
+var month = monthNames[now.getMonth()];
+// Get the day and pad it with leading zero if necessary
+var day = String(now.getDate()).padStart(2, '0');
+// Construct the date string
+var dateString = 'Date: ' + month + ' ' + day;
+// Get the hours and minutes, pad them if necessary
+var hours = String(now.getHours()).padStart(2, '0'); // 24-hour format
+var minutes = String(now.getMinutes()).padStart(2, '0');
+// Construct the time string
+var timeString = 'Time: ' + hours + ':' + minutes;
+description = dateString + '\n' + timeString;
+  printAnylabel("TimePrinted", "TimePrinted", description,1);
 }
 
 
