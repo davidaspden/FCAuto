@@ -24,7 +24,7 @@
       </p>
       <p>Enter Quantity<br>
         <i>max 500</i><br>
-        <input maxlength="3" id="quantity" type="text" value="1">
+        <input maxlength="3" id="quantity" type="number" value="1" min="1" step="1">
       </p>
 
       <p class="mainPrint"><a class="apmbutton" onClick="addPreset();">Add Preset</a><a class="apmbutton" onClick="printLabel();">Print Label</a><a href="http://localhost:5965/webui"><svg class="rotating" width="30px" height="30px" viewBox="0 0 25 25" fill="none" stroke="#000000"  xmlns="http://www.w3.org/2000/svg">
@@ -51,6 +51,8 @@
           <a class="stripbutton"
             onClick='printAnylabel("ISS Exceptions","Damaged Items Uboat","Damaged Items Uboat Do Not Stow!",10);'>&equiv;
             Damaged Items Uboat</a>
+            <a class="stripbutton"
+            onClick='printAnylabel("ISS Exceptions","Defective PS Uboat","Defective PS Uboat - Leave on Floor!, Do Not Stow!",10);'>&equiv; Defective PS Uboat</a>
             <a class="spdbutton" onClick='printNow();'>Now!</a>
         
        

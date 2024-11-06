@@ -114,7 +114,7 @@ function printTab() {
   var badge = 1;
   getStatus(
     "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=09&text=" +
+      "data=>9&text=" +
       encodeURIComponent(asciihex("Single Tab")) +
       "&quantity=" +
       encodeURIComponent(1) +
@@ -133,7 +133,7 @@ function printDoubleTab() {
   var badge = 1;
   getStatus(
     "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=0909&text=" +
+      "data=>9>9&text=" +
       encodeURIComponent(asciihex("Double Tab")) +
       "&quantity=" +
       encodeURIComponent(1) +
@@ -198,8 +198,9 @@ var hours = String(now.getHours()).padStart(2, '0'); // 24-hour format
 var minutes = String(now.getMinutes()).padStart(2, '0');
 // Construct the time string
 var timeString = 'Time: ' + hours + ':' + minutes;
-description = dateString + '\n' + timeString;
+description = dateString.padEnd(43,' ') + timeString;
   printAnylabel("TimePrinted", "TimePrinted", description,1);
 }
+
 
 

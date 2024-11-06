@@ -281,7 +281,7 @@ p,td {
 
 
 
-input[type="text"] {
+input[type="text"], input[type="number"] {
   background: #ffffff;
   border-radius: 3px;
   border: solid 1px #ddbd0ada;
@@ -292,7 +292,7 @@ input[type="text"] {
   transition: 0.1s 0.1s cubic-bezier(.93, .43, .56, .9);
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus, input[type="number"]:focus {
   border-bottom: 3px solid #0a5986c5;
   outline: none;
   padding: 4px;
