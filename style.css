@@ -385,3 +385,30 @@ input[type="text"]:focus, input[type="number"]:focus {
   flex-wrap: wrap;
   gap: 10px 10px;
 }
+#inputs {
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0px 0px;
+}
+
+#create {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  gap: 50px 50px;
+  flex-grow: 1;
+}
+#barcodePreviewSection {
+  align-self: center;
+  border: 2px solid #000;
+  padding: 3px;
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
