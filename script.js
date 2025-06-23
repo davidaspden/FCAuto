@@ -114,7 +114,7 @@ function printTab() {
   var badge = 1;
   getStatus(
     "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=72&text=" +
+      "data=09&text=" +
       encodeURIComponent(asciihex("Single Tab")) +
       "&quantity=" +
       encodeURIComponent(1) +
@@ -133,7 +133,7 @@ function printDoubleTab() {
   var badge = 1;
   getStatus(
     "http://localhost:5965/printer?action=print&type=barcode&" +
-      "data=7272&text=" +
+      "data=0909&text=" +
       encodeURIComponent(asciihex("Double Tab")) +
       "&quantity=" +
       encodeURIComponent(1) +
