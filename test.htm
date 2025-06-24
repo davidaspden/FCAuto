@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Send ZPL Hex TAB</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 20px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Send ZPL with Hex-Encoded TAB</h1>
+  <button id="sendBtn">Send ZPL</button>
+  <div id="status">Status: Idle</div>
+
+  <script>
+    const printerHost = "192.168.1.100"; // 🔁 Replace with your printer's IP
+    const port = 5965;
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      // ZPL using hex interpretation for TAB: \09
+      const zpl = "^XA^FO50,50^ADN,36,20^FH^FD\\09^FS^XZ";
+
+      // encodeURIComponent encodes ^ as %5E and \ as %5C (essential)
+      const encodedZPL = encodeURIComponent(zpl);
+
+      const url = `http://${printerHost}:${port}/print?data=${encodedZPL}`;
+
+      document.getElementById("status").textContent = "Sending...";
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error("Printer rejected the request");
+          return response.text();
+        })
+        .then(text => {
+          document.getElementById("status").textContent = "Success: Printer responded.";
+          console.log("Printer response:", text);
+        })
+        .catch(error => {
+          document.getElementById("status").textContent = "Error: " + error.message;
+          console.error("Error:", error);
+        });
+    });
+  </script>
+
+</body>
+</html>
