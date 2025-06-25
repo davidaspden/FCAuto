@@ -76,6 +76,7 @@
         <a class="spdbutton" onClick='printTab()'><svg id="barcodeST"></svg></a>
 
         <a class="spdbutton" onClick='printDoubleTab()'><svg id="barcodeDT"></svg></a>
+        <a class="spdbutton"><svg id="barcodeDTS"></svg></a>
       </div>
       <div id="tag">&copy; Alabama State Trooper 1337</div>
     </div>
@@ -148,6 +149,13 @@
       height: 25,
       text: "Single Tab",
       fontOptions: "bold", fontSize: 10, font: "Arial"
+    });
+    JsBarcode("#barcodeDTS", "\x09\x09 ", {
+      height: 25,
+      text: "Double Tab Space",
+      fontOptions: "bold",
+      fontSize: 10,
+      font: "Arial"
     });
 
     binputs = document.getElementsByTagName('input');
