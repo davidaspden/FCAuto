@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Send ZPL Hex TAB</title>
@@ -11,17 +12,20 @@
       align-items: center;
       margin-top: 50px;
     }
+
     button {
       padding: 12px 24px;
       font-size: 16px;
       cursor: pointer;
     }
+
     #status {
       margin-top: 20px;
       color: #333;
     }
   </style>
 </head>
+
 <body>
 
   <h1>Send ZPL with Hex-Encoded TAB</h1>
@@ -29,7 +33,12 @@
   <div id="status">Status: Idle</div>
 
   <script>
-    const printerHost = "192.168.1.100"; // 🔁 Replace with your printer's IP
+    function genId() {
+      var id = "";
+      for (var i = 0; i < 10; i++) id += Math.floor(Math.random() * 9);
+      return id;
+    }
+    const printerHost = "localhost"; // 🔁 Replace with your printer's IP
     const port = 5965;
 
     document.getElementById("sendBtn").addEventListener("click", () => {
@@ -39,7 +48,8 @@
       // encodeURIComponent encodes ^ as %5E and \ as %5C (essential)
       const encodedZPL = encodeURIComponent(zpl);
 
-      const url = `http://${printerHost}:${port}/print?data=${encodedZPL}`;
+      const url = `http://${printerHost}:${port}/printer?action=print&type=barcode&data=${encodedZPL}&text=&quantity=1&badgeid=1&dec=&seq=`;
+      url += genId(); // Append a random ID to the URL
 
       document.getElementById("status").textContent = "Sending...";
 
@@ -60,4 +70,5 @@
   </script>
 
 </body>
+
 </html>
