@@ -48,8 +48,7 @@
       // encodeURIComponent encodes ^ as %5E and \ as %5C (essential)
       const encodedZPL = encodeURIComponent(zpl);
 
-      var url = `http://${printerHost}:${port}/printer?action=print&type=barcode&data=${encodedZPL}&text=&quantity=1&badgeid=1&dec=&seq=`;
-      url += genId(); // Append a random ID to the URL
+      var url = `http://${printerHost}:${port}/bmp_request?page=printraw&data=${encodedZPL}`
 
       document.getElementById("status").textContent = "Sending...";
 
