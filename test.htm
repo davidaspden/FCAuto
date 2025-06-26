@@ -23,6 +23,20 @@
       margin-top: 20px;
       color: #333;
     }
+
+    .zpl-input-section textarea {
+  width: 100%;
+  max-width: 400px;
+  min-width: 200px;
+  border-radius: 4px;
+  border: 1px solid #ddbd0ada;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  box-shadow: 0 0.3rem 0.5rem rgba(41, 38, 38, 0.10);
+  margin-bottom: 10px;
+  resize: vertical;
+}
   </style>
 </head>
 
@@ -30,6 +44,11 @@
 
   <h1>Send ZPL with Hex-Encoded TAB</h1>
   <button id="sendBtn">Send ZPL</button>
+  <!-- Add this inside your desired container in barcode.htm -->
+<div class="zpl-input-section">
+  <label for="zplInput">Raw ZPL:</label><br>
+  <textarea id="zplInput" rows="6" cols="40" placeholder="Paste or type ZPL code here"></textarea>
+</div>
   <div id="status">Status: Idle</div>
 
   <script>
