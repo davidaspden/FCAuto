@@ -37,12 +37,39 @@
   margin-bottom: 10px;
   resize: vertical;
 }
+
+#samples {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #ddd;
+  gap: 20px;
+}
+
+#samples pre {
+  border: 1px solid green;
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-radius: 4px; 
+font-size: 8px;
+}
+
+#footer {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+  background-color: #6e49b3;
+  color: white;
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+  box-sizing: border-box;
+  padding: 4px;
+  text-align: center;
+}
   </style>
 </head>
-
 <body>
-
-  <h1>Send ZPL with Hex-Encoded TAB</h1>
+  <h1>Send ZPL to Label Printer</h1>
   <button id="sendBtn">Send ZPL</button>
   <!-- Add this inside your desired container in barcode.htm -->
 <div class="zpl-input-section">
@@ -50,7 +77,45 @@
   <textarea id="zplInput" rows="6" cols="40" placeholder="Paste or type ZPL code here"></textarea>
 </div>
   <div id="status">Status: Idle</div>
-
+<div id="samples">
+  <pre>
+QS Number Labels
+^XA
+Boxes
+^FO10,10^GB386,180,5^FS
+^FO150,10^GB5,180,5^FS
+^FO360,10^GB5,180,5^FS
+^CF0,140,140
+^FB140,1,0,C,0
+^FO10,50,2^FD9\&^FS
+^BY3
+^FO175,40
+^BCN,130,N,N,Y
+^FD9^FS
+^FX Branding
+^FT387,200^A0B,25,25^FB200,1,0,C^FH\^FDSPEED ENTER \&^FS
+^XZ
+  </pre>
+  <pre>
+ZPL Example with Hex TAB and space
+^XA
+Boxes
+^FO10,10^GB386,180,5^FS
+^FO150,10^GB5,180,5^FS
+^FO360,10^GB5,180,5^FS
+^CF0,140,140
+^FB140,1,0,C,0
+^FO10,50,2^FDE\&^FS
+^BY3
+^FO175,40
+^BCN,130,N,N,Y
+^FD>773>6  ^FS
+^FX Branding
+^FT387,200^A0B,25,25^FB200,1,0,C^FH\^FDSPEED EMPTY \&^FS
+^XZ
+</pre>
+</div>
+<div id="footer">Step into My Office!</div>
   <script>
     function genId() {
       var id = "";
@@ -60,6 +125,14 @@
     const printerHost = "localhost"; // 🔁 Replace with your printer's IP
     const port = 5965;
     const rawport = 5964; //Apparently
+    //all pre elements copy to the raw text area
+    document.querySelectorAll("#samples pre").forEach(pre => {
+      pre.addEventListener("click", () => {
+        const zplInput = document.getElementById("zplInput");
+        zplInput.value = pre.textContent.trim();
+        zplInput.focus();
+      });
+    });
 
     document.getElementById("sendBtn").addEventListener("click", () => {
       // ZPL using hex interpretation for TAB: \09

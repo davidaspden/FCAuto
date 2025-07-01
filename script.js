@@ -181,6 +181,52 @@ async function printQS() {
   }
 }
 
+async function printQSZPL() {
+  //ZPL:
+  var printerHost = "localhost"; // 🔁 Replace with your printer's IP
+  var port = 5965;
+  var zpl = `
+^XA
+Boxes
+^FO10,10^GB386,180,5^FS
+^FO150,10^GB5,180,5^FS
+^FO360,10^GB5,180,5^FS
+^CF0,140,140
+^FB140,1,0,C,0
+^FO10,50,2^FD{data}\&^FS
+^BY3
+^FO175,40
+^BCN,130,N,N,Y
+^FD{data}^FS
+^FX Branding
+^FT387,200^A0B,25,25^FB200,1,0,C^FH\^FDSPEED ENTER \&^FS
+^XZ`;
+  
+
+  
+  for (let k = 1; k < 11; k++) {
+    var encodedZPL = encodeURIComponent(zpl.replace("{data}", k));
+    var url = `http://${printerHost}:${port}/bmp_request?page=printraw&data=${encodedZPL}`
+    try {
+      await new Promise((resolve, reject) => {
+        getStatus(url,
+          () => {
+            resolve(); // Call resolve to proceed to the next request
+          },
+          () => {
+            printFailed(); // Trigger the failure callback
+            reject(); // Stop further requests on failure
+          }
+        );
+      });
+    } catch (error) {
+      console.error("Error in printQS: Request failed");
+      break; // Stop further requests if any fail
+    }
+  }
+}
+
+
 //Get a now() and format it for making a barcode.
 function printNow() {
   // Get the current date and time
