@@ -82,7 +82,7 @@ body {
     content: '';
     position: absolute;
     inset: var(--border-size);
-    background: linear-gradient(to top, rgb(59, 171, 190) 0%, #3d67bb 52%, #0291f1f6 100%);
+    background: linear-gradient(to bottom, #87b028 0%, /* Deep emerald shadow */ #008822 45%, /* Vibrant arcade green */ #ffffff 49%, /* Sharp white reflection highlight */ #d4af37 51%, /* Gold horizon line */ #8a6f27 55%, /* Deep gold shadow */ #ffd700 100% /* Arcade gold base */);
     z-index: -1;
     border-radius: calc(var(--border-radius) - var(--border-size));
   }
