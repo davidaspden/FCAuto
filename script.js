@@ -277,5 +277,26 @@ description = dateString.padEnd(43,' ') + timeString;
 
 document.addEventListener('DOMContentLoaded', loadPresets);
 
+document.addEventListener('keydown', function(event) {
+    // Prevent shortcuts from firing if you're actively typing in the input fields
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    // Check if the pressed key is between 1 and 9
+    if (event.key >= '1' && event.key <= '9') {
+        var presetIndex = parseInt(event.key) - 1;
+        
+        // Targets all 'a' tags that live inside your presets div
+        // Change '#presets' to match the actual ID or class name of your container div
+        var presets = document.querySelectorAll('#presets a');
+        
+        if (presets[presetIndex]) {
+            event.preventDefault(); // Prevents the page from jumping or scrolling
+            presets[presetIndex].click();
+        }
+    }
+});
+
 
 
