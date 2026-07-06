@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUD Distribution Chart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Premium Multi-Level Tree Layout Styles */
+    .tree-workspace {
+      position: relative;
+      width: 100%;
+      min-height: 480px;
+      max-height: 600px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--border-radius-md);
+      padding: 0; /* padding removed to align absolute canvas coordinate origin */
+      overflow: auto;
+      display: flex;
+      justify-content: flex-start; /* Start from left to grow right */
+      align-items: flex-start;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Padding applied to the root tree branch inside workspace */
+    .tree-workspace > .tree-branch {
+      padding: 3rem 2rem;
+    }
+
+    .tree-connections-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .tree-connections-svg path {
+      fill: none;
+      stroke: var(--accent-primary);
+      stroke-width: 2px;
+      stroke-linecap: round;
+      opacity: 0.55;
+      transition: stroke 0.3s ease, opacity 0.3s ease;
+    }
+
+    .tree-connections-svg path:hover {
+      stroke: var(--accent-secondary);
+      opacity: 0.95;
+      stroke-width: 2.5px;
+    }
+
+    /* Branch is a horizontal container: [ Parent Node ] ---> [ Children Column ] */
+    .tree-branch {
+      display: flex;
+      align-items: center;
+      gap: 90px;
+      position: relative;
+    }
+
+    /* Vertical stack for child branches */
+    .tree-children {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      position: relative;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .tree-children.collapsed {
+      display: none !important;
+    }
+
+    .tree-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-md);
+      padding: 0.9rem 1.4rem;
+      color: #fff;
+      font-weight: 600;
+      text-align: left;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: var(--transition-smooth);
+      min-width: 180px;
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .tree-node:hover {
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+      transform: translateY(-2px);
+      background: var(--bg-card-hover);
+    }
+
+    .tree-node.root-node {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+    }
+
+    .tree-node.grandchild-node {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.05);
+      font-size: 0.8rem;
+      min-width: 160px;
+    }
+    
+    .tree-node.grandchild-node:hover {
+      border-color: var(--accent-success);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Node content spacing */
+    .node-title {
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .node-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Absolute right-edge toggle button */
+    .tree-toggle-btn {
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #080711;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      z-index: 10;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      transition: var(--transition-smooth);
+      line-height: 1;
+    }
+
+    .tree-node:hover .tree-toggle-btn {
+      border-color: var(--accent-secondary);
+      color: #fff;
+    }
+
+    .tree-node.root-node .tree-toggle-btn {
+      border-color: var(--accent-primary);
+    }
+
+    .tree-toggle-btn:hover {
+      background: var(--accent-primary) !important;
+      box-shadow: 0 0 12px var(--accent-primary);
+      border-color: #fff !important;
+      color: #fff !important;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="dark-theme">
+  <div class="glow-container">
+    <div class="glow-sphere glow-sphere-1"></div>
+    <div class="glow-sphere glow-sphere-2"></div>
+  </div>
+
+  <header class="app-header">
+    <div class="header-content" style="position: relative;">
+      <!-- Real-time Clock Widget -->
+      <div class="realtime-clock-widget">
+        <div class="pulse-dot"></div>
+        <div class="clock-data">
+          <span class="clock-label">SYSTEM REAL-TIME</span>
+          <span id="realTimeClock" class="clock-value font-mono">--:--:--</span>
+        </div>
+      </div>
+      <div class="logo-area" style="justify-content: center;">
+        <span class="logo-icon">📈</span>
+        <h1>FudBin <span class="accent-text">Distribution Chart</span></h1>
+      </div>
+      <p class="subtitle">Analyze and map FUD volume distributions</p>
+      
+      <!-- Premium Navigation Toggle -->
+      <nav style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+        <a href="index.html" class="btn secondary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">📊 Histogram Extractor</a>
+        <a href="chart.html" class="btn primary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; box-shadow: none;">📈 Distribution Chart</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="app-container" style="max-width: 1000px;">
+    <!-- Section 1: JSON Input -->
+    <section class="card input-section">
+      <div class="card-header">
+        <div class="header-icon">📥</div>
+        <h2>JSON Data Input</h2>
+      </div>
+      <div class="card-body">
+        <p class="section-desc">Paste your FUD container JSON snippet to dynamically construct the branching distribution tree.</p>
+        
+        <div class="textarea-wrapper">
+          <textarea id="jsonInput" placeholder='{ "containers": [ ... ] }'></textarea>
+          <div class="textarea-actions">
+            <button id="uploadBtn" class="btn secondary-btn" title="Upload JSON or TXT file">Upload</button>
+            <button id="formatBtn" class="btn secondary-btn" title="Format JSON input">Format</button>
+            <button id="clearBtn" class="btn secondary-btn" title="Clear input">Clear</button>
+            <input type="file" id="fileInput" accept=".json,.txt" style="display: none;">
+          </div>
+        </div>
+
+        <div class="input-actions-row">
+          <div id="parseStatus" class="status-indicator idle">
+            <span class="status-dot"></span>
+            <span class="status-text">Awaiting JSON input...</span>
+          </div>
+          <button id="parseBtn" class="btn primary-btn">Parse & Build Tree</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Distribution Chart Container -->
+    <section class="card" style="min-height: 480px; display: flex; flex-direction: column;">
+      <div class="card-header">
+        <div class="header-icon">📊</div>
+        <h2>Fud Distribution Chart</h2>
+      </div>
+      <div class="card-body" id="chartBody" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+        
+        <!-- Tree diagram dynamically generated here -->
+        <div class="tree-workspace" id="treeWorkspace">
+          <div class="empty-state">
+            <span style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;">🌳</span>
+            Paste a valid JSON snippet above to view the container distribution tree.
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Advanced Fud Statistics JSON parser</p>
+  </footer>
+
+  <script>
+    const jsonInput = document.getElementById('jsonInput');
+    const parseBtn = document.getElementById('parseBtn');
+    const formatBtn = document.getElementById('formatBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const parseStatus = document.getElementById('parseStatus');
+    const treeWorkspace = document.getElementById('treeWorkspace');
+
+    // Event Listeners
+    parseBtn.addEventListener('click', handleParse);
+    formatBtn.addEventListener('click', formatJSON);
+    clearBtn.addEventListener('click', clearInput);
+
+    if (uploadBtn && fileInput) {
+      uploadBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files.length > 0) {
+          processFile(files[0]);
+        }
+      });
+    }
+
+    const textareaWrapper = jsonInput.closest('.textarea-wrapper');
+    if (textareaWrapper) {
+      textareaWrapper.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        textareaWrapper.classList.add('drag-over');
+      });
+      textareaWrapper.addEventListener('dragleave', () => {
+        textareaWrapper.classList.remove('drag-over');
+      });
+      textareaWrapper.addEventListener('drop', (e) => {
+        e.preventDefault();
+        textareaWrapper.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          processFile(files[0]);
+        }
+      });
+    }
+
+    function processFile(file) {
+      const nameLower = file.name.toLowerCase();
+      if (!nameLower.endsWith('.json') && !nameLower.endsWith('.txt')) {
+        setStatus('error', 'Error: Only JSON or TXT files are supported.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        jsonInput.value = event.target.result;
+        setStatus('idle', `Loaded "${file.name}" successfully.`);
+        handleParse();
+      };
+      reader.onerror = () => {
+        setStatus('error', 'Error: Failed to read local file.');
+      };
+      reader.readAsText(file);
+    }
+
+    // Start System Real-Time Clock
+    startRealTimeClock();
+
+    function startRealTimeClock() {
+      const clockEl = document.getElementById('realTimeClock');
+      if (!clockEl) return;
+
+      function update() {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        clockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      }
+      
+      update();
+      setInterval(update, 1000);
+    }
+    
+    // Resize connections drawing on viewport changes
+    window.addEventListener('resize', drawConnections);
+    treeWorkspace.addEventListener('scroll', drawConnections);
+
+    function setStatus(type, message) {
+      parseStatus.className = `status-indicator ${type}`;
+      const text = parseStatus.querySelector('.status-text');
+      text.textContent = message;
+    }
+
+    function formatJSON() {
+      try {
+        const val = jsonInput.value.trim();
+        if (!val) return;
+        const parsed = JSON.parse(val);
+        jsonInput.value = JSON.stringify(parsed, null, 2);
+        setStatus('idle', 'JSON formatted.');
+      } catch (e) {
+        setStatus('error', `Format error: ${e.message}`);
+      }
+    }
+
+    function clearInput() {
+      jsonInput.value = '';
+      setStatus('idle', 'Awaiting JSON input...');
+      treeWorkspace.innerHTML = `
+        <div class="empty-state">
+          <span style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;">🌳</span>
+          Paste a valid JSON snippet above to view the container distribution tree.
+        </div>
+      `;
+    }
+
+    function handleParse() {
+      const rawVal = jsonInput.value.trim();
+      if (!rawVal) {
+        setStatus('error', 'Error: Input is empty.');
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(rawVal);
+        let containersList = [];
+
+        // Check if containers array exists
+        if (parsed.containers && Array.isArray(parsed.containers)) {
+          containersList = parsed.containers;
+        } else if (Array.isArray(parsed)) {
+          containersList = parsed;
+        } else if (typeof parsed === 'object') {
+          // Fallback recursive search for arrays
+          const arrays = Object.values(parsed).filter(val => Array.isArray(val));
+          if (arrays.length > 0) {
+            containersList = arrays[0];
+          }
+        }
+
+        if (containersList.length === 0) {
+          throw new Error('Could not find any lists of containers in the JSON structure.');
+        }
+
+        // Build the tree DOM dynamically
+        buildTree(containersList);
+        setStatus('success', `Tree rendered successfully with ${containersList.length} containers!`);
+
+        // Smooth scroll to chart card
+        treeWorkspace.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (e) {
+        console.error(e);
+        setStatus('error', `Parsing Error: ${e.message}`);
+      }
+    }
+
+    // Group containers and render DOM elements
+    function buildTree(containers) {
+      // 1. Group records by outermostContainerType
+      const groups = {};
+      containers.forEach(c => {
+        const type = c.outermostContainerType || 'UNGROUPED';
+        if (!groups[type]) {
+          groups[type] = [];
+        }
+        groups[type].push(c);
+      });
+
+      // Clear workspace and add Connection SVG canvas
+      treeWorkspace.innerHTML = '<svg class="tree-connections-svg"></svg>';
+      
+      // 2. Build DOM structures
+      const masterRootBranch = document.createElement('div');
+      masterRootBranch.className = 'tree-branch';
+
+      // Level 1: Root Node (Warehouse)
+      const rootNode = document.createElement('div');
+      rootNode.className = 'tree-node root-node';
+      rootNode.id = 'node-root';
+      rootNode.innerHTML = `
+        <div class="node-title">Warehouse Root</div>
+        <div class="node-meta">${containers.length} Containers</div>
+        <button class="tree-toggle-btn" id="btn-toggle-root">+</button>
+      `;
+      masterRootBranch.appendChild(rootNode);
+
+      // Level 2: Children Container (Types)
+      const level2Container = document.createElement('div');
+      level2Container.className = 'tree-children collapsed';
+      level2Container.id = 'children-root';
+
+      // Iterate through each grouped type
+      Object.entries(groups).forEach(([type, items], groupIdx) => {
+        const typeBranch = document.createElement('div');
+        typeBranch.className = 'tree-branch';
+
+        // Child Node representing type category
+        const typeNode = document.createElement('div');
+        typeNode.className = 'tree-node';
+        typeNode.id = `node-type-${groupIdx}`;
+        typeNode.innerHTML = `
+          <div class="node-title">${formatCleanName(type)}</div>
+          <div class="node-meta">${items.length} Scannables</div>
+          <button class="tree-toggle-btn" id="btn-toggle-type-${groupIdx}">+</button>
+        `;
+        typeBranch.appendChild(typeNode);
+
+        // Level 3: Grandchildren Container (Individual outermost scannables)
+        const level3Container = document.createElement('div');
+        level3Container.className = 'tree-children collapsed';
+        level3Container.id = `children-type-${groupIdx}`;
+
+        // Add grandchildren (individual scannable IDs)
+        items.forEach((item, itemIdx) => {
+          const scannableId = item.outermostScannableId || item.scannableId || `ID-${itemIdx}`;
+          const unitCount = item.unitCount || item.asinList?.length || 0;
+          
+          const itemNode = document.createElement('div');
+          itemNode.className = 'tree-node grandchild-node';
+          itemNode.id = `node-item-${groupIdx}-${itemIdx}`;
+          itemNode.innerHTML = `
+            <div class="node-title" style="color: var(--accent-success);">${scannableId}</div>
+            <div class="node-meta">${unitCount} Units</div>
+          `;
+          level3Container.appendChild(itemNode);
+        });
+
+        // Set up connection link ID bindings on type buttons
+        const typeToggleBtn = typeNode.querySelector('.tree-toggle-btn');
+        typeToggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isCollapsed = level3Container.classList.toggle('collapsed');
+          typeToggleBtn.textContent = isCollapsed ? '+' : '−';
+          drawConnections();
+        });
+
+        typeBranch.appendChild(level3Container);
+        level2Container.appendChild(typeBranch);
+      });
+
+      // Bind root toggler event
+      const rootToggleBtn = rootNode.querySelector('.tree-toggle-btn');
+      rootToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isCollapsed = level2Container.classList.toggle('collapsed');
+        rootToggleBtn.textContent = isCollapsed ? '+' : '−';
+        drawConnections();
+      });
+
+      masterRootBranch.appendChild(level2Container);
+      treeWorkspace.appendChild(masterRootBranch);
+
+      // Trigger initial redraw call
+      setTimeout(drawConnections, 100);
+    }
+
+    // Convert snake case types to simple readable names
+    function formatCleanName(text) {
+      return text.replace(/_/g, ' ')
+                 .toLowerCase()
+                 .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    // Generic connector math calculating relative layout points
+    function drawConnections() {
+      const workspace = document.getElementById('treeWorkspace');
+      const svg = workspace.querySelector('.tree-connections-svg');
+      if (!workspace || !svg) return;
+      
+      // Clear paths
+      svg.innerHTML = '';
+      
+      // Match sizing boundaries
+      svg.style.width = workspace.scrollWidth + 'px';
+      svg.style.height = workspace.scrollHeight + 'px';
+      svg.setAttribute('width', workspace.scrollWidth);
+      svg.setAttribute('height', workspace.scrollHeight);
+
+      const workspaceRect = workspace.getBoundingClientRect();
+      const branches = workspace.querySelectorAll('.tree-branch');
+      
+      branches.forEach(branch => {
+        const parentNode = branch.querySelector(':scope > .tree-node');
+        const childrenContainer = branch.querySelector(':scope > .tree-children');
+        
+        if (!parentNode || !childrenContainer || parentNode.offsetParent === null) return;
+        if (childrenContainer.classList.contains('collapsed')) return;
+
+        const childBranches = childrenContainer.querySelectorAll(':scope > .tree-branch');
+        const leafNodes = childrenContainer.querySelectorAll(':scope > .tree-node');
+
+        const parentRect = parentNode.getBoundingClientRect();
+        const pX = (parentRect.left + parentRect.width) - workspaceRect.left + workspace.scrollLeft;
+        const pY = (parentRect.top + parentRect.height / 2) - workspaceRect.top + workspace.scrollTop;
+
+        const drawLine = (childNode) => {
+          if (!childNode || childNode.offsetParent === null) return;
+
+          const childRect = childNode.getBoundingClientRect();
+          const cX = childRect.left - workspaceRect.left + workspace.scrollLeft;
+          const cY = (childRect.top + childRect.height / 2) - workspaceRect.top + workspace.scrollTop;
+          
+          const controlOffset = (cX - pX) * 0.55;
+          const pathData = `M ${pX} ${pY} C ${pX + controlOffset} ${pY}, ${cX - controlOffset} ${cY}, ${cX} ${cY}`;
+          
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', pathData);
+          svg.appendChild(path);
+        };
+
+        childBranches.forEach(cb => {
+          const childNode = cb.querySelector(':scope > .tree-node');
+          drawLine(childNode);
+        });
+
+        leafNodes.forEach(childNode => {
+          drawLine(childNode);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

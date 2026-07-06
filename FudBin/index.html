@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Stow Time & ASIN Histogram Extractor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <div class="glow-container">
+    <div class="glow-sphere glow-sphere-1"></div>
+    <div class="glow-sphere glow-sphere-2"></div>
+  </div>
+
+  <header class="app-header">
+    <div class="header-content" style="position: relative;">
+      <!-- Real-time Clock Widget -->
+      <div class="realtime-clock-widget">
+        <div class="pulse-dot"></div>
+        <div class="clock-data">
+          <span class="clock-label">SYSTEM REAL-TIME</span>
+          <span id="realTimeClock" class="clock-value font-mono">--:--:--</span>
+        </div>
+      </div>
+      <div class="logo-area">
+        <span class="logo-icon">📊</span>
+        <h1>FudBin <span class="accent-text">Histogram Extractor</span></h1>
+      </div>
+      <p class="subtitle">Extract and visualize ASIN stows in real-time across dynamic temporal bins</p>
+      
+      <!-- Premium Navigation Toggle -->
+      <nav style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+        <a href="index.html" class="btn primary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; box-shadow: none;">📊 Histogram Extractor</a>
+        <a href="chart.html" class="btn secondary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">📈 Distribution Chart</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="app-container">
+    <!-- Section 1: JSON Input -->
+    <section class="card input-section" id="inputSection">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div class="header-icon">📥</div>
+          <h2>JSON Data Input</h2>
+        </div>
+        <button id="toggleInputCollapseBtn" class="btn secondary-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem; display: none;" title="Toggle collapsible visibility of the input text area">⚙️ Expand Input</button>
+      </div>
+      <div class="card-body">
+        <p class="section-desc">Paste your JSON array snippet containing ASINs and UTC variables (e.g., timestamp strings or epoch seconds under keys like <code>asin</code>, <code>utc</code>, etc.).</p>
+        
+        <div class="textarea-wrapper">
+          <textarea id="jsonInput" placeholder='[
+  { "asin": "B0812345", "utc": "2026-07-02T05:30:00Z" },
+  { "asin": "B09ABCDE", "utc": "2026-07-02T06:15:30Z" },
+  { "asin": "B07XYZ99", "utc": "2026-07-02T11:45:00Z" }
+]'></textarea>
+          <div class="textarea-actions">
+            <button id="uploadBtn" class="btn secondary-btn" title="Upload JSON or TXT file">Upload</button>
+            <button id="formatBtn" class="btn secondary-btn" title="Format JSON input">Format</button>
+            <button id="clearBtn" class="btn secondary-btn" title="Clear input">Clear</button>
+            <input type="file" id="fileInput" accept=".json,.txt" style="display: none;">
+          </div>
+        </div>
+
+        <div class="input-actions-row">
+          <div id="parseStatus" class="status-indicator idle">
+            <span class="status-dot"></span>
+            <span class="status-text">Awaiting JSON input...</span>
+          </div>
+          <div id="timeVariableContainer" class="time-var-selector hidden">
+            <label for="timeVariableSelect">📅 Variable:</label>
+            <select id="timeVariableSelect"></select>
+          </div>
+          <button id="parseBtn" class="btn primary-btn">Parse & Initialize</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1.5: Scanner Integration Card -->
+    <section id="scannerSection" class="card hidden">
+      <!-- Hidden input to lock focus for scanner device key emulation -->
+      <input type="text" id="barcodeHiddenInput" style="position: absolute; opacity: 0; pointer-events: none; left: -9999px;" autocomplete="off">
+      <div class="card-header" style="justify-content: space-between; align-items: center; display: flex;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div class="header-icon">🛡️</div>
+          <h2>Scanner Integration</h2>
+        </div>
+        <label class="switch-container">
+          <input type="checkbox" id="scanModeToggle">
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+      <div class="card-body">
+        <p class="section-desc">Toggle Scan Mode on to intercept keyboard scans from physical handheld barcode devices and check them locally against FUD priority item lists.</p>
+        
+        <div style="display: flex; gap: 0.5rem; margin: -0.25rem 0 0.75rem 0; flex-wrap: wrap;">
+          <button id="injectTestBtn" class="btn secondary-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem; border-color: rgba(6, 182, 212, 0.3); color: var(--accent-secondary);" title="Inject real-time dynamic test barcodes for auditing color flashes">🧪 Inject Test Barcodes</button>
+        </div>
+        
+        <div class="scan-status-panel idle" id="scanStatusPanel">
+          <div class="scan-status-main">
+            <span class="scan-status-indicator"></span>
+            <span class="scan-status-text" id="scanStatusText">Scan Mode is inactive. Toggle on to begin.</span>
+          </div>
+          
+          <div id="scanResultCard" class="scan-result-card hidden">
+            <div class="result-header" id="resultHeader">PRIORITY FUD ITEM DETECTED</div>
+            <div class="result-body">
+              <div class="result-row"><span class="lbl">ASIN:</span> <span id="resAsin" class="val highlight">--</span></div>
+              <div class="result-row"><span class="lbl">CONTAINER:</span> <span id="resContainer" class="val">--</span></div>
+              <div class="result-row"><span class="lbl">LOCATION:</span> <span id="resLocation" class="val">--</span></div>
+              <div class="result-row"><span class="lbl">DEADLINE:</span> <span id="resDeadline" class="val font-mono">--</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Simulator Panel (hidden until parsed) -->
+    <section id="simulatorPanel" class="card simulator-section hidden">
+      <div class="card-header">
+        <div class="header-icon">⏳</div>
+        <h2>Simulated Current Time Control</h2>
+      </div>
+      <div class="card-body">
+        <div class="time-readout-row">
+          <div class="time-readout-item">
+            <span class="readout-label">SIMULATED TIME (UTC)</span>
+            <span id="simTimeUtc" class="readout-value font-mono">--:--:--</span>
+          </div>
+          <div class="time-readout-item">
+            <span class="readout-label">SIMULATED TIME (LOCAL)</span>
+            <span id="simTimeLocal" class="readout-value font-mono">--:--:--</span>
+          </div>
+          <div class="time-readout-item">
+            <span id="readoutLabel" class="readout-label">Fud still within time</span>
+            <span id="activeStowsCount" class="readout-value highlight font-mono">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="slider-container" style="position: relative; padding: 0.5rem 0;">
+          <input type="range" id="timeSlider" class="time-slider" min="0" max="100" value="0" step="any" style="margin: 0; width: 100%;">
+          <!-- Real-Time "NOW" Indicator Marker -->
+          <div id="realTimeMarker" class="real-time-marker hidden" title="Real-World Current Time">
+            <div class="marker-line"></div>
+            <div class="marker-label">NOW</div>
+          </div>
+          <div class="slider-labels" style="margin-top: 4px;">
+            <span id="sliderMinLabel" class="font-mono">Start Time</span>
+            <span id="sliderValLabel" class="font-mono current-val-label">Current</span>
+            <span id="sliderMaxLabel" class="font-mono">End Time</span>
+          </div>
+        </div>
+
+        <div class="simulator-controls">
+          <button id="playBtn" class="btn control-btn" title="Play Simulation">▶ Play</button>
+          <button id="stopBtn" class="btn control-btn" title="Stop Simulation" disabled>⏹ Stop</button>
+          
+          <div class="speed-selector">
+            <span class="speed-label">Simulation Speed:</span>
+            <select id="simSpeed">
+              <option value="1">Real-time (1s/s)</option>
+              <option value="60">1 min/s</option>
+              <option value="300" selected>5 min/s</option>
+              <option value="1800">30 min/s</option>
+              <option value="3600">1 hour/s</option>
+              <option value="18000">5 hours/s</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Centered Histograms -->
+    <section id="histogramsSection" class="histograms-container hidden">
+      <!-- Histogram 1 -->
+      <div class="card histogram-card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h3>Coarse Overview (Next 24hrs)</h3>
+            <div class="card-subtitle">Bins: &lt;4 hours and 4 to 24 hours</div>
+          </div>
+          <button class="btn secondary-btn fullscreen-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;" title="Toggle Fullscreen">⛶ Expand</button>
+        </div>
+        <div class="card-body centered-flex">
+          <div class="histogram-wrapper flex-chart" id="chart1">
+            <!-- Dynamic bars inserted here -->
+            <div class="bar-container" style="--bar-height: 0%;" data-bin="0">
+              <div class="bar-tooltip">Loading...</div>
+              <div class="bar-value">0</div>
+              <div class="bar-glow"></div>
+              <div class="bar"></div>
+              <div class="bar-label">4 - 24 Hours</div>
+            </div>
+            <div class="bar-container shift-4" style="--bar-height: 0%;" data-bin="1">
+              <div class="bar-tooltip">Loading...</div>
+              <div class="bar-value">0</div>
+              <div class="bar-glow"></div>
+              <div class="bar"></div>
+              <div class="bar-label">&lt; 4 Hours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histogram 2 -->
+      <div class="card histogram-card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h3>Current System Distribution (Next 24hrs)</h3>
+            <div class="card-subtitle">Bins: &lt;8h, 8-12h, 12-18h, and 18-24h</div>
+          </div>
+          <button class="btn secondary-btn fullscreen-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;" title="Toggle Fullscreen">⛶ Expand</button>
+        </div>
+        <div class="card-body centered-flex">
+          <div class="histogram-wrapper flex-chart" id="chart2">
+            <div class="bar-container shift-1" style="--bar-height: 0%;" data-bin="0">
+              <div class="bar-tooltip">Loading...</div>
+              <div class="bar-value">0</div>
+              <div class="bar-glow"></div>
+              <div class="bar"></div>
+              <div class="bar-label">18 - 24 Hours</div>
+            </div>
+            <div class="bar-container shift-2" style="--bar-height: 0%;" data-bin="1">
+              <div class="bar-tooltip">Loading...</div>
+              <div class="bar-value">0</div>
+              <div class="bar-glow"></div>
+              <div class="bar"></div>
+              <div class="bar-label">12 - 18 Hours</div>
+            </div>
+            <div class="bar-container shift-3" style="--bar-height: 0%;" data-bin="2">
+              <div class="bar-tooltip">Loading...</div>
+              <div class="bar-value">0</div>
+              <div class="bar-glow"></div>
+              <div class="bar"></div>
+              <div class="bar-label">8 - 12 Hours</div>
+            </div>
+            <div class="bar-container shift-4" style="--bar-height: 0%;" data-bin="3">
+              <div class="bar-tooltip">Loading...</div>
+              <div class="bar-value">0</div>
+              <div class="bar-glow"></div>
+              <div class="bar"></div>
+              <div class="bar-label">&lt; 8 Hours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histogram 3 -->
+      <div class="card histogram-card wide-card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h3>Full Day Outlook</h3>
+            <div class="card-subtitle">Bins: 15-minute slots going back 24 hours from current simulated time</div>
+          </div>
+          <button class="btn secondary-btn fullscreen-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;" title="Toggle Fullscreen">⛶ Expand</button>
+        </div>
+        <div class="card-body centered-flex">
+          <div class="histogram-wrapper flex-chart fine-resolution" id="chart3">
+            <!-- 16 bars generated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Advanced Fud Statistics JSON parser</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
