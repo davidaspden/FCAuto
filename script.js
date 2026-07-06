@@ -78,6 +78,7 @@ function addPreset() {
   pre.classList.add('apmbutton');
   pre.setAttribute('onClick','printAnylabel("'+(displayText !="" ? displayText : barcode) +'","'+ (barcode != '' ? barcode : displayText) + '","ISS Exception",2);')
   presets = document.getElementById("presets");
+  pre.dataset.user = "true";
   presets.appendChild(pre)
 
   ///
@@ -93,6 +94,7 @@ function loadPresets() {
   saved.forEach(function(p) {
     var pre = document.createElement('a');
     pre.innerHTML = p.displayText != '' ? p.displayText : p.barcode;
+    pre.dataset.user = "true";
     pre.classList.add('apmbutton');
     pre.setAttribute('onClick', 'printAnylabel("' + (p.displayText != "" ? p.displayText : p.barcode) + '","' + (p.barcode != '' ? p.barcode : p.displayText) + '","ISS Exception",2);');
     presetsDiv.appendChild(pre);
