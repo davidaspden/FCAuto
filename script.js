@@ -79,7 +79,26 @@ function addPreset() {
   pre.setAttribute('onClick','printAnylabel("'+(displayText !="" ? displayText : barcode) +'","'+ (barcode != '' ? barcode : displayText) + '","ISS Exception",2);')
   presets = document.getElementById("presets");
   presets.appendChild(pre)
+
+  ///
+
+    var saved = JSON.parse(localStorage.getItem('userPresets') || '[]');
+  saved.push({ barcode: barcode, displayText: displayText });
+  localStorage.setItem('userPresets', JSON.stringify(saved));
 }
+
+function loadPresets() {
+  var saved = JSON.parse(localStorage.getItem('userPresets') || '[]');
+  var presetsDiv = document.getElementById("presets");
+  saved.forEach(function(p) {
+    var pre = document.createElement('a');
+    pre.innerHTML = p.displayText != '' ? p.displayText : p.barcode;
+    pre.classList.add('apmbutton');
+    pre.setAttribute('onClick', 'printAnylabel("' + (p.displayText != "" ? p.displayText : p.barcode) + '","' + (p.barcode != '' ? p.barcode : p.displayText) + '","ISS Exception",2);');
+    presetsDiv.appendChild(pre);
+  });
+}
+
 //////////////////////////////////////////////////////////
 
 function printAnylabel(b, t, d,n) {
@@ -247,6 +266,8 @@ var timeString = 'Time: ' + hours + ':' + minutes;
 description = dateString.padEnd(43,' ') + timeString;
   printAnylabel("TimePrinted", "TimePrinted", description,1);
 }
+
+document.addEventListener('DOMContentLoaded', loadPresets);
 
 
 

@@ -82,6 +82,11 @@
             color: #fff;
             min-width: 200px;
             transition: background 200ms ease;
+            position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 2147483647;
         }
 
         #tm-toggle-btn:hover { background: #0b56b5; }
