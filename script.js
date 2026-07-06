@@ -99,6 +99,14 @@ function loadPresets() {
   });
 }
 
+function clearUserPresets() {
+  localStorage.removeItem('userPresets');
+  // Remove dynamically added buttons (leave the hardcoded ones)
+  var presetsDiv = document.getElementById("presets");
+  var buttons = presetsDiv.querySelectorAll('a.apmbutton[data-user]');
+  buttons.forEach(function(b) { b.remove(); });
+}
+
 //////////////////////////////////////////////////////////
 
 function printAnylabel(b, t, d,n) {
