@@ -152,7 +152,7 @@ body {
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
 }
 
@@ -314,11 +314,6 @@ textarea:focus {
   border-radius: var(--border-radius-sm);
 }
 
-/* Hide Variable Selector from UI */
-#timeVariableContainer {
-  display: none !important;
-}
-
 .input-actions-row {
   display: flex;
   justify-content: space-between;
@@ -327,28 +322,6 @@ textarea:focus {
   gap: 1rem;
 }
 
-.time-var-selector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  padding: 0.4rem 0.85rem;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-}
-
-.time-var-selector label {
-  color: var(--text-muted);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.time-var-selector select {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.3);
-}
 
 /* Status Indicators */
 .status-indicator {
@@ -1243,5 +1216,14 @@ body.modal-open {
   padding: 1px 3px;
   border-radius: 3px;
   border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+/* Live Playhead Button Active Styling */
+.live-playhead-btn.active {
+  background: rgba(6, 182, 212, 0.25) !important;
+  color: var(--accent-secondary) !important;
+  border-color: var(--accent-secondary) !important;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.4) !important;
+  font-weight: 700 !important;
 }
 

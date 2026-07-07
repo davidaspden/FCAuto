@@ -40,8 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const formatBtn = document.getElementById('formatBtn');
   const clearBtn = document.getElementById('clearBtn');
   const parseStatus = document.getElementById('parseStatus');
-  const timeVariableContainer = document.getElementById('timeVariableContainer');
-  const timeVariableSelect = document.getElementById('timeVariableSelect');
   
   const simulatorPanel = document.getElementById('simulatorPanel');
   const timeSlider = document.getElementById('timeSlider');
@@ -56,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const playBtn = document.getElementById('playBtn');
   const stopBtn = document.getElementById('stopBtn');
+  const livePlayheadBtn = document.getElementById('livePlayheadBtn');
   const simSpeed = document.getElementById('simSpeed');
   
   const histogramsSection = document.getElementById('histogramsSection');
@@ -76,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Animation / Playback State
   let isPlaying = false;
+  let isLivePlayheadActive = false;
   let animationFrameId = null;
   let lastFrameTime = null;
 
@@ -94,14 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
     timeSlider.addEventListener('input', handleSliderChange);
     playBtn.addEventListener('click', togglePlayback);
     stopBtn.addEventListener('click', stopPlayback);
+    if (livePlayheadBtn) {
+      livePlayheadBtn.addEventListener('click', toggleLivePlayhead);
+    }
     
-    // Wire dropdown selection change
-    timeVariableSelect.addEventListener('change', (e) => {
-      if (isPlaying) {
-        stopPlayback();
-      }
-      setTimeVariable(e.target.value);
-    });
+
 
     // Auto resize text area on paste/input
     jsonInput.addEventListener('input', () => {
@@ -188,6 +185,16 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Keep NOW marker synchronized with system time
       updateRealTimeMarker();
+      
+      // If Live Mode is active, update playhead to real-world current time
+      if (isLivePlayheadActive) {
+        simulatedCurrentTime = Date.now();
+        if (timeSlider) {
+          timeSlider.value = simulatedCurrentTime;
+        }
+        updateSimulationReadouts();
+        updateHistograms();
+      }
     }
     
     update();
@@ -224,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Reset all simulation and chart elements to clean hidden state
   function resetSimulationState() {
     stopPlayback();
+    disableLivePlayhead();
     rawData = [];
     allDiscoveredRecords = [];
     discoveredTimeKeys = [];
@@ -234,8 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     simulatedCurrentTime = null;
     earliestStowByDate = null;
     
-    timeVariableContainer.classList.add('hidden');
-    timeVariableSelect.innerHTML = '';
+
     simulatorPanel.classList.add('hidden');
     histogramsSection.classList.add('hidden');
 
@@ -358,34 +365,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       
-      if (stowByDates.length > 0) {
-        earliestStowByDate = Math.min(...stowByDates);
-      } else {
-        earliestStowByDate = null;
+      if (stowByDates.length === 0) {
+        throw new Error('Could not find any "stowByDate" keys in the JSON records.');
       }
 
-      // Discover potential time variables
-      const timeKeys = findPotentialTimeKeys(allDiscoveredRecords);
-      if (timeKeys.length === 0) {
-        throw new Error('Found ASINs, but could not detect any numeric or string timestamp variables.');
-      }
+      earliestStowByDate = Math.min(...stowByDates);
 
-      // Sort and populate the selector
-      discoveredTimeKeys = sortTimeKeys(timeKeys);
-      timeVariableSelect.innerHTML = '';
-      
-      discoveredTimeKeys.forEach(key => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = key;
-        timeVariableSelect.appendChild(option);
-      });
+      // Auto-detect the exact casing of stowByDate in the first record
+      const sampleRec = allDiscoveredRecords[0];
+      selectedTimeKey = Object.keys(sampleRec).find(k => k.toLowerCase() === 'stowbydate') || 'stowByDate';
 
-      // Show the variable selector
-      timeVariableContainer.classList.remove('hidden');
-
-      // Set default selected time variable (the highest-ranking one)
-      setTimeVariable(discoveredTimeKeys[0]);
+      setTimeVariable(selectedTimeKey);
 
       // Show simulator, scanner section, and charts
       const scannerSection = document.getElementById('scannerSection');
@@ -402,7 +392,45 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleInputBtn.textContent = '⚙️ Expand Input';
       }
 
-      setStatus('success', `Found ${allDiscoveredRecords.length} records! Dynamic time variable enabled.`);
+      // Calculate aggregates
+      const uniqueAsins = new Set();
+      const uniqueContainers = new Set();
+      let tsxCount = 0;
+      let csxCount = 0;
+
+      allDiscoveredRecords.forEach(rec => {
+        // ASIN
+        const asinKey = Object.keys(rec).find(k => k.toLowerCase() === 'asin');
+        if (asinKey && rec[asinKey]) {
+          uniqueAsins.add(String(rec[asinKey]).trim().toUpperCase());
+        }
+
+        // Container
+        const containerId = rec.outermostScannableId || rec.scannableId;
+        if (containerId) {
+          uniqueContainers.add(String(containerId).trim().toUpperCase());
+        }
+
+        // Scannable ID starts with tsX / csX
+        const scannable = String(rec.scannableId || rec.outermostScannableId || '').toLowerCase();
+        if (scannable.startsWith('tsx')) {
+          tsxCount++;
+        } else if (scannable.startsWith('csx')) {
+          csxCount++;
+        }
+      });
+
+      const totalItems = allDiscoveredRecords.length;
+      const tsxPct = totalItems > 0 ? Math.round((tsxCount / totalItems) * 100) : 0;
+      const csxPct = totalItems > 0 ? Math.round((csxCount / totalItems) * 100) : 0;
+
+      setStatus('success', 
+        `Found ${totalItems} records! • ` +
+        `${uniqueContainers.size} containers • ` +
+        `${uniqueAsins.size} unique ASINs • ` +
+        `tsX (totes): ${tsxPct}% • ` +
+        `csX (cases): ${csxPct}%`
+      );
       
       // Smooth scroll to control panel
       simulatorPanel.scrollIntoView({ behavior: 'smooth' });
@@ -458,19 +486,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Playhead is exactly 24 hours from the earliest stow
     minTime = parsedStows[0].timestamp;
-    maxTime = minTime + 24 * MS_IN_HOUR;
-
-    // Initialize simulated time to earliestStowByDate if it exists and falls inside the 24h playhead, otherwise minTime
-    if (earliestStowByDate !== null && earliestStowByDate >= minTime && earliestStowByDate <= maxTime) {
-      simulatedCurrentTime = earliestStowByDate;
-    } else {
-      simulatedCurrentTime = minTime;
-    }
+    maxTime = Math.max(minTime + 24 * MS_IN_HOUR, Date.now() + 24 * MS_IN_HOUR);
 
     setupSimulationSlider();
-    updateSimulationReadouts();
     buildFineResolutionChartLayout();
-    updateHistograms();
+
+    const realNow = Date.now();
+    const hasOverlap = (realNow >= minTime && realNow <= maxTime);
+    if (hasOverlap) {
+      enableLivePlayhead();
+    } else {
+      disableLivePlayhead();
+      // Initialize simulated time to earliestStowByDate if it exists and falls inside the playhead, otherwise minTime
+      if (earliestStowByDate !== null && earliestStowByDate >= minTime && earliestStowByDate <= maxTime) {
+        simulatedCurrentTime = earliestStowByDate;
+      } else {
+        simulatedCurrentTime = minTime;
+      }
+      timeSlider.value = simulatedCurrentTime;
+      updateSimulationReadouts();
+      updateHistograms();
+    }
   }
 
   // Setup the simulation slider values
@@ -506,6 +542,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleSliderChange(e) {
     if (isPlaying) {
       stopPlayback();
+    }
+    if (isLivePlayheadActive) {
+      disableLivePlayhead();
     }
     
     simulatedCurrentTime = Number(e.target.value);
@@ -550,6 +589,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startPlayback() {
+    if (isLivePlayheadActive) {
+      disableLivePlayhead();
+    }
     if (simulatedCurrentTime >= maxTime) {
       simulatedCurrentTime = minTime;
       timeSlider.value = minTime;
@@ -648,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Decouple full hover label from short visible label
       const isForward = isVariableForwardLooking(selectedTimeKey);
       if (i === 95) {
-        label.textContent = 'Now';
+        label.textContent = isLivePlayheadActive ? 'Now' : 'Miss';
       } else if (i === 0) {
         label.textContent = isForward ? '+24h' : '-24h';
       } else if ((95 - i) % 8 === 0) {
@@ -669,6 +711,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Master update function for all 3 histograms
   function updateHistograms() {
+    if (chart3Container) {
+      const rightmostLabel = chart3Container.querySelector('.bar-container[data-bin="95"] .bar-label');
+      if (rightmostLabel) {
+        rightmostLabel.textContent = isLivePlayheadActive ? 'Now' : 'Miss';
+      }
+    }
+
     const isForward = isVariableForwardLooking(selectedTimeKey);
     const activeStows = parsedStows.filter(s => {
       return isForward ? s.timestamp >= simulatedCurrentTime : s.timestamp <= simulatedCurrentTime;
@@ -1087,7 +1136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const resAsin = document.getElementById('resAsin');
     const resContainer = document.getElementById('resContainer');
-    const resLocation = document.getElementById('resLocation');
     const resDeadline = document.getElementById('resDeadline');
     const resultHeader = document.getElementById('resultHeader');
 
@@ -1095,8 +1143,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const query = code.toUpperCase();
     
-    // Search the parsed stows
-    const match = parsedStows.find(stow => {
+    // Search all matching stows (could be multiple if container holds multiple items)
+    const matches = parsedStows.filter(stow => {
       const rec = stow.originalRecord;
       const asin = stow.asin.toUpperCase();
       const outerContainer = (rec?.outermostScannableId || '').toUpperCase();
@@ -1115,14 +1163,18 @@ document.addEventListener('DOMContentLoaded', () => {
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     };
 
-    if (match) {
+    if (matches.length > 0) {
+      // Sort matches chronologically to find the earliest (most urgent) deadline
+      matches.sort((a, b) => a.timestamp - b.timestamp);
+      const earliestMatch = matches[0];
+
       // Calculate remaining time relative to System Real Time if it overlaps, otherwise fall back to Simulated Current Time
       const realNow = new Date().getTime();
       const isRealTimeOverlap = (realNow >= minTime && realNow <= maxTime);
       const referenceTime = isRealTimeOverlap ? realNow : simulatedCurrentTime;
       
       const isForward = isVariableForwardLooking(selectedTimeKey);
-      const deltaMs = match.timestamp - referenceTime;
+      const deltaMs = earliestMatch.timestamp - referenceTime;
       
       // Resolve dynamic color based on Graph 2 shift deadlines:
       // <8h = Cyan (#06b6d4), 8-12h = Indigo (#6366f1), 12-18h = Fuchsia (#d946ef), 18-24h = Orange (#f97316), Overdue = Red (#ef4444)
@@ -1156,7 +1208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.style.boxShadow = `0 0 8px ${matchColor}`;
       }
 
-      text.textContent = `Priority scan detected: "${code}"`;
+      text.textContent = `Priority scan detected: "${code}" (${matches.length} unit${matches.length !== 1 ? 's' : ''})`;
       
       if (resultHeader) {
         resultHeader.textContent = 'PRIORITY FUD ITEM DETECTED';
@@ -1164,10 +1216,35 @@ document.addEventListener('DOMContentLoaded', () => {
         resultHeader.style.textShadow = `0 0 10px ${getRgba(matchColor, 0.5)}`;
       }
       
-      const rec = match.originalRecord;
-      if (resAsin) resAsin.textContent = match.asin;
-      if (resContainer) resContainer.textContent = rec?.outermostScannableId || rec?.scannableId || 'Unknown';
-      if (resLocation) resLocation.textContent = rec?.warehouseId || 'NCL1';
+      // 1. Aggregate unique ASINs and quantities in matches
+      const asinCounts = {};
+      matches.forEach(m => {
+        asinCounts[m.asin] = (asinCounts[m.asin] || 0) + 1;
+      });
+      const sortedAsins = Object.entries(asinCounts).sort((a, b) => a[0].localeCompare(b[0]));
+      
+      let asinHtml = '';
+      sortedAsins.forEach(([asin, count]) => {
+        const url = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${asin}`;
+        asinHtml += `
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <a href="${url}" target="_blank" class="tooltip-asin-link" style="color: var(--accent-secondary); text-decoration: none; font-weight: 600; font-size: 0.85rem; border-bottom: 1px dashed rgba(6, 182, 212, 0.4); padding-bottom: 1px;">${asin}</a>
+            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500; font-family: 'JetBrains Mono', monospace;">(${count}x)</span>
+          </div>
+        `;
+      });
+      if (resAsin) resAsin.innerHTML = asinHtml;
+
+      // 2. Aggregate unique outermost/internal containers in matches
+      const containers = new Set();
+      matches.forEach(m => {
+        const rec = m.originalRecord;
+        const cId = rec?.outermostScannableId || rec?.scannableId || 'Unknown Container';
+        containers.add(cId);
+      });
+      if (resContainer) resContainer.textContent = Array.from(containers).join(', ');
+
+
       
       if (resDeadline) {
         if (isForward) {
@@ -1179,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resDeadline.style.color = matchColor;
           }
         } else {
-          const ageMs = referenceTime - match.timestamp;
+          const ageMs = referenceTime - earliestMatch.timestamp;
           resDeadline.textContent = `Created ${Math.round(ageMs / 60000)}m ago`;
           resDeadline.style.color = 'var(--accent-secondary)';
         }
@@ -1215,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (resAsin) resAsin.textContent = code;
       if (resContainer) resContainer.textContent = 'Not in priority dataset';
-      if (resLocation) resLocation.textContent = '--';
+
       if (resDeadline) {
         resDeadline.textContent = '--';
         resDeadline.style.color = '#fff';
@@ -1353,6 +1430,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Live Playhead control logic
+  function toggleLivePlayhead() {
+    if (isLivePlayheadActive) {
+      disableLivePlayhead();
+    } else {
+      enableLivePlayhead();
+    }
+  }
+
+  function enableLivePlayhead() {
+    if (isPlaying) {
+      stopPlayback();
+    }
+    isLivePlayheadActive = true;
+    if (livePlayheadBtn) {
+      livePlayheadBtn.classList.add('active');
+    }
+    
+    // Lock to system clock
+    simulatedCurrentTime = Date.now();
+    if (timeSlider) {
+      timeSlider.value = simulatedCurrentTime;
+    }
+    updateSimulationReadouts();
+    updateHistograms();
+  }
+
+  function disableLivePlayhead() {
+    isLivePlayheadActive = false;
+    if (livePlayheadBtn) {
+      livePlayheadBtn.classList.remove('active');
+    }
+  }
+
   // Update the position of the real-world time marker on the timeline
   function updateRealTimeMarker() {
     const marker = document.getElementById('realTimeMarker');
@@ -1364,6 +1475,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const realNow = Date.now();
+
+    // Always expand slider max dynamically: 24 hours from current clock time
+    maxTime = Math.max(minTime + 24 * MS_IN_HOUR, realNow + 24 * MS_IN_HOUR);
+    if (timeSlider) {
+      timeSlider.max = maxTime;
+    }
+    const sliderMaxEl = document.getElementById('sliderMaxLabel');
+    if (sliderMaxEl) {
+      sliderMaxEl.textContent = formatDateLabel(new Date(maxTime));
+    }
+
     if (realNow >= minTime && realNow <= maxTime) {
       const pct = ((realNow - minTime) / (maxTime - minTime)) * 100;
       marker.style.left = `${pct}%`;
