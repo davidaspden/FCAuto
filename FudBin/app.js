@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Animation / Playback State
   let isPlaying = false;
   let isLivePlayheadActive = false;
+  let isScanModeActive = false;
   let animationFrameId = null;
   let lastFrameTime = null;
 
@@ -1009,7 +1010,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Scanner Integration Logic
-  let isScanModeActive = false;
 
   function initScannerIntegration() {
     const toggle = document.getElementById('scanModeToggle');
