@@ -41,6 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('clearBtn');
   const parseStatus = document.getElementById('parseStatus');
   
+  const augmentedInput = document.getElementById('augmentedInput');
+  const addAugmentedBtn = document.getElementById('addAugmentedBtn');
+  const clearAugmentedBtn = document.getElementById('clearAugmentedBtn');
+  const augmentedStatus = document.getElementById('augmentedStatus');
+  const toggleAugmentedListBtn = document.getElementById('toggleAugmentedListBtn');
+  const augmentedListSection = document.getElementById('augmentedListSection');
+  const pendingTotesList = document.getElementById('pendingTotesList');
+  const foundTotesList = document.getElementById('foundTotesList');
+  
   const simulatorPanel = document.getElementById('simulatorPanel');
   const timeSlider = document.getElementById('timeSlider');
   const sliderMinLabel = document.getElementById('sliderMinLabel');
@@ -72,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let maxTime = null;
   let simulatedCurrentTime = null; // unix timestamp in ms
   let earliestStowByDate = null; // Minimum value of stowByDate in the dataset
+  let augmentedTotes = [];
+  let augmentedFoundTotes = [];
   
   // Animation / Playback State
   let isPlaying = false;
@@ -96,6 +107,35 @@ document.addEventListener('DOMContentLoaded', () => {
     stopBtn.addEventListener('click', stopPlayback);
     if (livePlayheadBtn) {
       livePlayheadBtn.addEventListener('click', toggleLivePlayhead);
+    }
+    
+    // Initialize Augmented Containers list from localStorage
+    initAugmentedContainers();
+    if (addAugmentedBtn) {
+      addAugmentedBtn.addEventListener('click', addAugmentedContainers);
+    }
+    if (clearAugmentedBtn) {
+      clearAugmentedBtn.addEventListener('click', clearAllAugmentedContainers);
+    }
+    if (augmentedInput) {
+      augmentedInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addAugmentedContainers();
+        }
+      });
+    }
+    if (toggleAugmentedListBtn && augmentedListSection) {
+      toggleAugmentedListBtn.addEventListener('click', () => {
+        const isCollapsed = augmentedListSection.classList.contains('collapsed-list');
+        if (isCollapsed) {
+          augmentedListSection.classList.remove('collapsed-list');
+          toggleAugmentedListBtn.textContent = '⚙️ Collapse List';
+        } else {
+          augmentedListSection.classList.add('collapsed-list');
+          toggleAugmentedListBtn.textContent = '⚙️ Expand List';
+        }
+      });
     }
     
 
@@ -246,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
     simulatorPanel.classList.add('hidden');
     histogramsSection.classList.add('hidden');
 
+    const locSummary = document.getElementById('locationSummaryContainer');
+    if (locSummary) locSummary.classList.add('hidden');
+
     // Reset input collapsible card
     const inputSection = document.getElementById('inputSection');
     const toggleInputBtn = document.getElementById('toggleInputCollapseBtn');
@@ -255,13 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleInputBtn.textContent = '⚙️ Collapse Input';
     }
 
-    const scannerSection = document.getElementById('scannerSection');
-    if (scannerSection) {
-      scannerSection.classList.add('hidden');
-      const toggle = document.getElementById('scanModeToggle');
-      if (toggle) toggle.checked = false;
-      disableScanMode();
-    }
+    checkScannerCardVisibility();
   }
 
   // Recursive search to look for all objects containing 'asin' in the structure
@@ -378,8 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeVariable(selectedTimeKey);
 
       // Show simulator, scanner section, and charts
-      const scannerSection = document.getElementById('scannerSection');
-      if (scannerSection) scannerSection.classList.remove('hidden');
+      checkScannerCardVisibility();
       simulatorPanel.classList.remove('hidden');
       histogramsSection.classList.remove('hidden');
       
@@ -432,6 +468,12 @@ document.addEventListener('DOMContentLoaded', () => {
         `csX (cases): ${csxPct}%`
       );
       
+      // Calculate warehouse locations summary
+      const locationList = allDiscoveredRecords
+        .map(rec => rec.outermostScannableId || rec.scannableId)
+        .filter(Boolean);
+      updateWarehouseLocationsSummary(locationList);
+
       // Smooth scroll to control panel
       simulatorPanel.scrollIntoView({ behavior: 'smooth' });
 
@@ -1164,6 +1206,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (matches.length > 0) {
+      // Ensure priority FUD rows are visible, and augmented action row is hidden
+      const resAsinRow = document.getElementById('resAsinRow');
+      if (resAsinRow) resAsinRow.classList.remove('hidden');
+      const resDeadlineRow = document.getElementById('resDeadlineRow');
+      if (resDeadlineRow) resDeadlineRow.classList.remove('hidden');
+      const augmentedActionRow = document.getElementById('resAugmentedActionRow');
+      if (augmentedActionRow) augmentedActionRow.classList.add('hidden');
       // Sort matches chronologically to find the earliest (most urgent) deadline
       matches.sort((a, b) => a.timestamp - b.timestamp);
       const earliestMatch = matches[0];
@@ -1270,41 +1319,128 @@ document.addEventListener('DOMContentLoaded', () => {
       // Visual page flash indicator matching the priority color
       flashVisualPageIndicator(matchColor);
     } else {
-      // Non-Priority scan
-      panel.className = 'scan-status-panel no-match';
-      panel.style.borderColor = '#ef4444';
-      panel.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.25)';
-      panel.style.background = 'rgba(239, 68, 68, 0.03)';
-      
-      const indicator = panel.querySelector('.scan-status-indicator');
-      if (indicator) {
-        indicator.style.backgroundColor = '#ef4444';
-        indicator.style.boxShadow = '0 0 8px #ef4444';
-      }
+      // Check if it exists in augmented containers list (either pending or found)
+      const isAugmentedMatch = augmentedTotes.includes(query) || augmentedFoundTotes.includes(query);
+      if (isAugmentedMatch) {
+        // If it was pending, move it to found list
+        if (augmentedTotes.includes(query)) {
+          augmentedTotes = augmentedTotes.filter(t => t !== query);
+          if (!augmentedFoundTotes.includes(query)) {
+            augmentedFoundTotes.push(query);
+          }
+          localStorage.setItem('augmentedTotes', JSON.stringify(augmentedTotes));
+          localStorage.setItem('augmentedFoundTotes', JSON.stringify(augmentedFoundTotes));
+          renderAugmentedLists();
+          updateAugmentedReadout();
+        }
 
-      text.textContent = `Non-priority scan: "${code}"`;
-      
-      if (resultHeader) {
-        resultHeader.textContent = 'NON-PRIORITY / NOT FOUND';
-        resultHeader.style.color = '#ef4444';
-        resultHeader.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
-      }
-      
-      if (resAsin) resAsin.textContent = code;
-      if (resContainer) resContainer.textContent = 'Not in priority dataset';
+        const matchColor = 'var(--accent-secondary)'; // Cyan/secondary theme
+        
+        panel.className = 'scan-status-panel match';
+        panel.style.borderColor = matchColor;
+        panel.style.boxShadow = `0 0 20px ${getRgba(matchColor, 0.35)}`;
+        panel.style.background = getRgba(matchColor, 0.03);
+        
+        const indicator = panel.querySelector('.scan-status-indicator');
+        if (indicator) {
+          indicator.style.backgroundColor = matchColor;
+          indicator.style.boxShadow = `0 0 8px ${matchColor}`;
+        }
 
-      if (resDeadline) {
-        resDeadline.textContent = '--';
-        resDeadline.style.color = '#fff';
+        text.textContent = `Augmented container detected: "${code}"`;
+        
+        if (resultHeader) {
+          resultHeader.textContent = 'AUGMENTED TOTE FOUND';
+          resultHeader.style.color = matchColor;
+          resultHeader.style.textShadow = `0 0 10px ${getRgba(matchColor, 0.5)}`;
+        }
+
+        // Hide ASIN row and Deadline row, show container row and action row
+        const resAsinRow = document.getElementById('resAsinRow');
+        if (resAsinRow) resAsinRow.classList.add('hidden');
+        const resDeadlineRow = document.getElementById('resDeadlineRow');
+        if (resDeadlineRow) resDeadlineRow.classList.add('hidden');
+        const augmentedActionRow = document.getElementById('resAugmentedActionRow');
+        if (augmentedActionRow) augmentedActionRow.classList.remove('hidden');
+
+        // Container link:
+        if (resContainer) {
+          const url = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${query}`;
+          resContainer.innerHTML = `<a href="${url}" target="_blank" style="color: var(--accent-secondary); text-decoration: none; font-weight: 600; border-bottom: 1px dashed rgba(6, 182, 212, 0.4); padding-bottom: 1px;">${code}</a>`;
+        }
+
+        // Hook up the delete button
+        const removeBtn = document.getElementById('resRemoveAugmentedBtn');
+        if (removeBtn) {
+          const newRemoveBtn = removeBtn.cloneNode(true);
+          removeBtn.parentNode.replaceChild(newRemoveBtn, removeBtn);
+          newRemoveBtn.addEventListener('click', () => {
+            removeAugmentedContainer(query);
+            // Hide result card and reset panel state
+            resultCard.classList.add('hidden');
+            panel.className = 'scan-status-panel idle';
+            panel.style.borderColor = '';
+            panel.style.boxShadow = '';
+            panel.style.background = '';
+            const indicator = panel.querySelector('.scan-status-indicator');
+            if (indicator) {
+              indicator.style.backgroundColor = '';
+              indicator.style.boxShadow = '';
+            }
+            text.textContent = `Tote "${query}" removed from storage list.`;
+          });
+        }
+
+        resultCard.classList.remove('hidden');
+        
+        // Play positive arpeggio
+        playBeep('priority');
+        flashVisualPageIndicator(matchColor);
+      } else {
+        // Non-Priority scan
+        panel.className = 'scan-status-panel no-match';
+        panel.style.borderColor = '#ef4444';
+        panel.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.25)';
+        panel.style.background = 'rgba(239, 68, 68, 0.03)';
+        
+        const indicator = panel.querySelector('.scan-status-indicator');
+        if (indicator) {
+          indicator.style.backgroundColor = '#ef4444';
+          indicator.style.boxShadow = '0 0 8px #ef4444';
+        }
+
+        text.textContent = `Non-priority scan: "${code}"`;
+        
+        if (resultHeader) {
+          resultHeader.textContent = 'NON-PRIORITY / NOT FOUND';
+          resultHeader.style.color = '#ef4444';
+          resultHeader.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+        }
+        
+        // Reset row visibilities
+        const resAsinRow = document.getElementById('resAsinRow');
+        if (resAsinRow) resAsinRow.classList.remove('hidden');
+        const resDeadlineRow = document.getElementById('resDeadlineRow');
+        if (resDeadlineRow) resDeadlineRow.classList.remove('hidden');
+        const augmentedActionRow = document.getElementById('resAugmentedActionRow');
+        if (augmentedActionRow) augmentedActionRow.classList.add('hidden');
+        
+        if (resAsin) resAsin.textContent = code;
+        if (resContainer) resContainer.textContent = 'Not in priority dataset';
+
+        if (resDeadline) {
+          resDeadline.textContent = '--';
+          resDeadline.style.color = '#fff';
+        }
+        
+        resultCard.classList.remove('hidden');
+        
+        // Play low error buzz
+        playBeep('error');
+        
+        // Visual page flash indicator (red)
+        flashVisualPageIndicator('#ef4444');
       }
-      
-      resultCard.classList.remove('hidden');
-      
-      // Play low error buzz
-      playBeep('error');
-      
-      // Visual page flash indicator (red)
-      flashVisualPageIndicator('#ef4444');
     }
   }
 
@@ -1342,10 +1478,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (type === 'success') {
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
         oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        oscillator.stop(audioCtx.currentTime + 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.30);
+        oscillator.stop(audioCtx.currentTime + 0.30);
       } else if (type === 'priority') {
         const playTone = (freq, startOffset, duration, volume) => {
           try {
@@ -1354,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', () => {
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             
-            osc.type = 'sine';
+            osc.type = 'triangle'; // Warm triangle wave harmonics to cut through warehouse background noise
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startOffset);
             gain.gain.setValueAtTime(volume, audioCtx.currentTime + startOffset);
             
@@ -1364,18 +1500,18 @@ document.addEventListener('DOMContentLoaded', () => {
           } catch(e){}
         };
 
-        // Rising C-Major success arpeggio: C5 -> E5 -> G5 -> C6
-        playTone(523.25, 0.0, 0.25, 0.35);    // C5
-        playTone(659.25, 0.08, 0.25, 0.35);   // E5
-        playTone(783.99, 0.16, 0.25, 0.35);   // G5
-        playTone(1046.50, 0.24, 0.60, 0.45);  // C6
+        // Louder, sustained C-Major arpeggio (C5 -> E5 -> G5 -> C6) spanning 1.55s total
+        playTone(523.25, 0.0, 0.45, 0.80);    // C5
+        playTone(659.25, 0.15, 0.45, 0.80);   // E5
+        playTone(783.99, 0.30, 0.45, 0.80);   // G5
+        playTone(1046.50, 0.45, 1.10, 0.90);  // C6
       } else {
         oscillator.type = 'sawtooth';
         oscillator.frequency.setValueAtTime(180, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
         oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        oscillator.stop(audioCtx.currentTime + 0.25);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.40);
+        oscillator.stop(audioCtx.currentTime + 0.40);
       }
     } catch (e) {
       console.warn('Audio blocked or unsupported:', e);
@@ -1462,6 +1598,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (livePlayheadBtn) {
       livePlayheadBtn.classList.remove('active');
     }
+    updateSimulationReadouts();
+    updateHistograms();
   }
 
   // Update the position of the real-world time marker on the timeline
@@ -1480,6 +1618,9 @@ document.addEventListener('DOMContentLoaded', () => {
     maxTime = Math.max(minTime + 24 * MS_IN_HOUR, realNow + 24 * MS_IN_HOUR);
     if (timeSlider) {
       timeSlider.max = maxTime;
+      if (simulatedCurrentTime !== null) {
+        timeSlider.value = simulatedCurrentTime;
+      }
     }
     const sliderMaxEl = document.getElementById('sliderMaxLabel');
     if (sliderMaxEl) {
@@ -1492,6 +1633,323 @@ document.addEventListener('DOMContentLoaded', () => {
       marker.classList.remove('hidden');
     } else {
       marker.classList.add('hidden');
+    }
+  }
+
+  // Initialize Augmented Containers from localStorage
+  function initAugmentedContainers() {
+    try {
+      const stored = localStorage.getItem('augmentedTotes');
+      if (stored) {
+        augmentedTotes = JSON.parse(stored) || [];
+      } else {
+        augmentedTotes = [];
+      }
+
+      const storedFound = localStorage.getItem('augmentedFoundTotes');
+      if (storedFound) {
+        augmentedFoundTotes = JSON.parse(storedFound) || [];
+      } else {
+        augmentedFoundTotes = [];
+      }
+    } catch (e) {
+      console.error(e);
+      augmentedTotes = [];
+      augmentedFoundTotes = [];
+    }
+    updateAugmentedReadout();
+    renderAugmentedLists();
+    checkScannerCardVisibility();
+  }
+
+  // Render open-top box visual lists inside expanded containers card
+  function renderAugmentedLists() {
+    if (!pendingTotesList || !foundTotesList) return;
+
+    // Render Pending List
+    pendingTotesList.innerHTML = '';
+    if (augmentedTotes.length === 0) {
+      pendingTotesList.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 4px;">No pending containers.</div>`;
+    } else {
+      const sortedPending = [...augmentedTotes].sort((a, b) => a.localeCompare(b));
+      sortedPending.forEach(tote => {
+        const box = document.createElement('div');
+        box.className = 'aug-tote-box';
+        
+        const link = document.createElement('a');
+        link.href = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${tote}`;
+        link.target = '_blank';
+        link.textContent = tote;
+        
+        const delBtn = document.createElement('span');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = '×';
+        delBtn.title = 'Remove container';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeAugmentedContainer(tote);
+        });
+
+        box.appendChild(link);
+        box.appendChild(delBtn);
+        pendingTotesList.appendChild(box);
+      });
+    }
+
+    // Render Found List
+    foundTotesList.innerHTML = '';
+    if (augmentedFoundTotes.length === 0) {
+      foundTotesList.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 4px;">No found containers.</div>`;
+    } else {
+      const sortedFound = [...augmentedFoundTotes].sort((a, b) => a.localeCompare(b));
+      sortedFound.forEach(tote => {
+        const box = document.createElement('div');
+        box.className = 'aug-tote-box found';
+        
+        const link = document.createElement('a');
+        link.href = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${tote}`;
+        link.target = '_blank';
+        link.textContent = tote;
+        
+        const delBtn = document.createElement('span');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = '×';
+        delBtn.title = 'Remove container';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeAugmentedContainer(tote);
+        });
+
+        box.appendChild(link);
+        box.appendChild(delBtn);
+        foundTotesList.appendChild(box);
+      });
+    }
+  }
+
+  // Add items from input
+  function addAugmentedContainers() {
+    if (!augmentedInput) return;
+    const inputVal = augmentedInput.value;
+    if (!inputVal.trim()) return;
+
+    // Split by commas, filter empty values, trim and uppercase
+    const newItems = inputVal.split(',')
+      .map(s => s.trim().toUpperCase())
+      .filter(s => s.length > 0);
+
+    let addedCount = 0;
+    newItems.forEach(item => {
+      // Don't add to pending if it's already in pending or found
+      if (!augmentedTotes.includes(item) && !augmentedFoundTotes.includes(item)) {
+        augmentedTotes.push(item);
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      localStorage.setItem('augmentedTotes', JSON.stringify(augmentedTotes));
+      updateAugmentedReadout();
+      renderAugmentedLists();
+      checkScannerCardVisibility();
+      setAugmentedStatus('success', `Added ${addedCount} container(s) successfully!`);
+    } else {
+      setAugmentedStatus('success', 'All entered containers are already in the list.');
+    }
+
+    augmentedInput.value = '';
+  }
+
+  // Clear all items
+  function clearAllAugmentedContainers() {
+    augmentedTotes = [];
+    augmentedFoundTotes = [];
+    localStorage.removeItem('augmentedTotes');
+    localStorage.removeItem('augmentedFoundTotes');
+    updateAugmentedReadout();
+    renderAugmentedLists();
+    checkScannerCardVisibility();
+    setAugmentedStatus('idle', 'All augmented containers cleared.');
+  }
+
+  // Remove a single item from both lists
+  function removeAugmentedContainer(toteId) {
+    const uppercaseId = toteId.toUpperCase();
+    augmentedTotes = augmentedTotes.filter(t => t !== uppercaseId);
+    augmentedFoundTotes = augmentedFoundTotes.filter(t => t !== uppercaseId);
+    
+    localStorage.setItem('augmentedTotes', JSON.stringify(augmentedTotes));
+    localStorage.setItem('augmentedFoundTotes', JSON.stringify(augmentedFoundTotes));
+    
+    updateAugmentedReadout();
+    renderAugmentedLists();
+    checkScannerCardVisibility();
+    setAugmentedStatus('success', `Removed "${toteId}" from storage.`);
+  }
+
+  // Update status readout count and color
+  function updateAugmentedReadout() {
+    if (!augmentedStatus) return;
+    const statusText = augmentedStatus.querySelector('.status-text');
+    if (statusText) {
+      const totalCount = augmentedTotes.length + augmentedFoundTotes.length;
+      statusText.textContent = `${totalCount} auxiliary container(s) stored (${augmentedTotes.length} pending, ${augmentedFoundTotes.length} found)`;
+    }
+  }
+
+  // Set the visual parsing status for Augmented card
+  function setAugmentedStatus(type, message) {
+    if (!augmentedStatus) return;
+    augmentedStatus.className = `status-indicator ${type}`;
+    const text = augmentedStatus.querySelector('.status-text');
+    if (text) {
+      text.textContent = message;
+    }
+  }
+
+  // Dynamic visibility logic for Scanner Card
+  function checkScannerCardVisibility() {
+    const scannerSection = document.getElementById('scannerSection');
+    if (!scannerSection) return;
+
+    const hasParsedData = parsedStows && parsedStows.length > 0;
+    const hasAugmentedData = (augmentedTotes.length + augmentedFoundTotes.length) > 0;
+
+    if (hasParsedData || hasAugmentedData) {
+      scannerSection.classList.remove('hidden');
+    } else {
+      scannerSection.classList.add('hidden');
+      const toggle = document.getElementById('scanModeToggle');
+      if (toggle) toggle.checked = false;
+      disableScanMode();
+    }
+  }
+
+  // Parse and display warehouse locations dynamically
+  function updateWarehouseLocationsSummary(locationList) {
+    const patterns = {
+      P2: /^(dz-P-A2[1-4]\d{2}|cvFMS_AS01_(ARSTOW_\d{4}_\d{4}|ARSTOW_RUNOUT_\d{2}|TO_ARSTOW_FLOOR2))$/,
+      P3: /^(dz-P-A3[1-4]\d{2}|cvFMS_AS02_(ARSTOW_\d{4}_\d{4}|ARSTOW_RUNOUT_\d{2}|TO_ARSTOW_FLOOR3))$/,
+      P4: /^(dz-P-A4[1-4]\d{2}|cvFMS_AS03_(ARSTOW_\d{4}_\d{4}|ARSTOW_RUNOUT_\d{2}|TO_ARSTOW_FLOOR4))$/
+    };
+
+    const data = {
+      P2: { total: 0, dz: [], bridges: [] },
+      P3: { total: 0, dz: [], bridges: [] },
+      P4: { total: 0, dz: [], bridges: [] }
+    };
+
+    const counts = {}; // Keep counts of stows/items at each friendly location name
+
+    locationList.forEach(loc => {
+      if (loc.includes('TO_ARSTOW')) return; // Skip entrances completely from summary
+      let matchedFloor = null;
+      
+      if (patterns.P2.test(loc)) matchedFloor = 'P2';
+      else if (patterns.P3.test(loc)) matchedFloor = 'P3';
+      else if (patterns.P4.test(loc)) matchedFloor = 'P4';
+
+      if (matchedFloor) {
+        data[matchedFloor].total++;
+        const translated = translateWarehouseLocation(loc, matchedFloor);
+        counts[translated] = (counts[translated] || 0) + 1;
+
+        if (loc.startsWith('dz-')) {
+          if (!data[matchedFloor].dz.includes(translated)) {
+            data[matchedFloor].dz.push(translated);
+          }
+        } else {
+          if (!data[matchedFloor].bridges.includes(translated)) {
+            data[matchedFloor].bridges.push(translated);
+          }
+        }
+      }
+    });
+
+    // Populate DOM Elements
+    ['P2', 'P3', 'P4'].forEach(floor => {
+      const floorData = data[floor];
+      
+      // Sort alphabetically for clean presentation
+      floorData.dz.sort((a, b) => a.localeCompare(b));
+      floorData.bridges.sort((a, b) => a.localeCompare(b));
+
+      // Append counts before the location with a colon: "12: Station 3160 (North P3)"
+      const formattedDz = floorData.dz.map(name => `<span style="color: var(--accent-secondary); font-weight: bold; font-family: var(--font-mono);">${counts[name]}</span>: ${name}`);
+      const formattedBridges = floorData.bridges.map(name => `<span style="color: var(--accent-secondary); font-weight: bold; font-family: var(--font-mono);">${counts[name]}</span>: ${name}`);
+
+      const totalEl = document.getElementById(`floor${floor}Total`);
+      const dzEl = document.getElementById(`floor${floor}Dz`);
+      const bridgesEl = document.getElementById(`floor${floor}Bridges`);
+
+      if (totalEl) totalEl.textContent = floorData.total;
+      if (dzEl) dzEl.innerHTML = formattedDz.join('<br>') || 'None';
+      if (bridgesEl) bridgesEl.innerHTML = formattedBridges.join('<br>') || 'None';
+    });
+
+    // Generate console output summary block
+    let output = [];
+    ['P2', 'P3', 'P4'].forEach(floor => {
+      const floorData = data[floor];
+      
+      const consoleDz = floorData.dz.map(name => `${counts[name]}: ${name}`);
+      const consoleBridges = floorData.bridges.map(name => `${counts[name]}: ${name}`);
+
+      let section = `Total on ${floor}: ${floorData.total}\n`;
+      section += `  Drop Zones:\n    - ${consoleDz.join('\n    - ') || 'None'}\n`;
+      section += `  Bridges/Runouts:\n    - ${consoleBridges.join('\n    - ') || 'None'}`;
+      output.push(section);
+    });
+
+    const summaryText = output.join('\n\n');
+    console.log("Warehouse Floor Location Summary:\n", summaryText);
+
+    // Show the container section
+    const summaryContainer = document.getElementById('locationSummaryContainer');
+    if (summaryContainer) summaryContainer.classList.remove('hidden');
+  }
+
+  // Translate cryptic location codes to friendly English descriptions
+  function translateWarehouseLocation(loc, floor) {
+    if (loc.startsWith('dz-')) {
+      const match = loc.match(/^dz-P-A(\d{4})$/);
+      if (match) {
+        const stationNum = match[1]; // e.g. "3160"
+        const dirDigit = stationNum.charAt(1); // e.g. "1"
+        let direction = 'North';
+        if (dirDigit === '2') direction = 'West';
+        else if (dirDigit === '3') direction = 'South';
+        else if (dirDigit === '4') direction = 'East';
+        
+        return `Station ${stationNum} (${direction} ${floor})`;
+      }
+      return loc;
+    } else {
+      if (loc.includes('RUNOUT')) {
+        // Last 2 digits: 01 = North, 02 = South
+        const match = loc.match(/RUNOUT_(\d{2})$/);
+        if (match) {
+          const runoutNum = match[1];
+          let dir = '';
+          if (runoutNum === '01') dir = ' North';
+          else if (runoutNum === '02') dir = ' South';
+          return `West Runout${dir} (${floor})`;
+        }
+        return `West Runout (${floor})`;
+      } else {
+        // It's a Bridge (extract the remaining ID and keep separate)
+        const match = loc.match(/^cvFMS_AS\d{2}_(.+)$/);
+        if (match && match[1]) {
+          let bridgeId = match[1];
+          // Strip ARSTOW_ prefix if present for cleaner station IDs
+          if (bridgeId.startsWith('ARSTOW_')) {
+            bridgeId = bridgeId.substring(7);
+          }
+          bridgeId = bridgeId.replace(/_/g, '-');
+          return `West Bridge ${bridgeId} (${floor})`;
+        }
+        return `West Bridge (${floor})`;
+      }
     }
   }
 });

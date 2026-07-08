@@ -1227,3 +1227,87 @@ body.modal-open {
   font-weight: 700 !important;
 }
 
+/* Collapsible Lists Section */
+.collapsed-list {
+  display: none !important;
+}
+
+/* Open-Top Tote Boxes */
+.aug-tote-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid #ef4444; /* red border */
+  border-top: none; /* except for the top */
+  padding: 0.35rem 0.75rem;
+  border-radius: 0 0 6px 6px;
+  background: rgba(239, 68, 68, 0.05);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: #fff;
+  transition: var(--transition-smooth);
+}
+
+.aug-tote-box.found {
+  border-color: var(--accent-success); /* green border */
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.aug-tote-box a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+  padding-bottom: 1px;
+}
+
+.aug-tote-box a:hover {
+  border-bottom-color: currentColor;
+}
+
+.aug-tote-box .delete-btn {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+}
+
+.aug-tote-box .delete-btn:hover {
+  color: #ef4444;
+}
+
+/* Unified Control Button Group */
+.btn-group {
+  display: inline-flex;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.btn-group .control-btn {
+  border-radius: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-right: 1px solid rgba(99, 102, 241, 0.2) !important;
+  background: transparent !important;
+}
+
+.btn-group .control-btn:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2) !important;
+}
+
+.btn-group .control-btn:last-child {
+  border-right: none !important;
+}
+
+.btn-group .live-playhead-btn.active {
+  background: rgba(6, 182, 212, 0.25) !important;
+}
+
+
+
