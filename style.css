@@ -164,6 +164,24 @@ p,td {
   z-index: 3;
 }
 
+.title-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-right: 88px;
+  margin-top: 4px;
+}
+
+.title-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
 .gradient-choice {
   width: 18px;
   height: 18px;
@@ -200,10 +218,9 @@ p,td {
 }
 
 .title h1 {
-  margin-bottom: 0px;
+  margin: 0;
   padding-bottom: 3px;
   border-bottom: 3px solid #f7b800;
-  margin-top: 4px;
   cursor: default;
   user-select: none;
 }
@@ -368,12 +385,22 @@ input[type="text"]:focus, input[type="number"]:focus {
   display: flex;
   border-top: 2px solid #200388;
   border-bottom: 2px solid #200388;
-  justify-content: center;
+  justify-content: flex-start;
   flex-direction: row;
   align-items: center;
-  align-self: baseline;
+  width: 100%;
   flex-wrap: wrap;
-  gap: 5px 5px
+  gap: 7px 6px;
+}
+
+.presets-title {
+  flex-basis: 100%;
+  margin: 0 0 8px;
+  text-align: left;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: #1b2653;
+  text-transform: uppercase;
 }
 
 @keyframes rotating {
@@ -469,14 +496,16 @@ input[type="text"]:focus, input[type="number"]:focus {
 
 .delete-btn {
 cursor: pointer;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.95rem;
-    font-weight: 700;
-    transition: color 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 2px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  line-height: 1;
+  padding: 0 2px;
 }
 
 .delete-btn:hover {
@@ -485,8 +514,14 @@ cursor: pointer;
     font-size: 0.95rem;
     font-weight: 700;
     transition: color 0.2s ease;
-    display: flex;
+  display: inline-flex;
     align-items: center;
     justify-content: center;
+  margin-left: 6px;
+  line-height: 1;
     padding: 0 2px;
+}
+
+a.apmbutton[data-user] {
+  white-space: nowrap;
 }

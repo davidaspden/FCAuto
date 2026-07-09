@@ -22,13 +22,16 @@
         <div class="gradient-choice" data-gradient-choice="subtle-pink" title="Subtle Pink"></div>
         <div class="gradient-choice" data-gradient-choice="blue-white" title="Blue to White"></div>
       </div>
-      <h1>Dave's Exceptions Barcode Generator</h1>
+      <div class="title-heading">
+        <img class="title-mark" src="./images/earthdark.jpg" alt="Exceptions logo">
+        <h1>Dave's Exceptions Barcode Generator</h1>
+      </div>
       <div id="create">
         <div class="titletext" id="inputs">
-          <label for="barcodedata"><span id="barcodedata_label">Barcode Data <br></span></label>
+          <label for="barcodedata"><span id="barcodedata_label">Barcode Data</span></label>
           <input maxlength="43" id="barcodedata" type="text" placeholder="max 43 Characters">
-          <label for="displaytext">Enter Display Text <br>
-            <i>(human readable!)</i></label>
+          <label for="displaytext">Enter Display Text
+            </label>
           <input maxlength="43" id="displaytext" type="text" placeholder="Human Readable Text">
           <label for="quantity">
             Enter Quantity</label>
@@ -50,7 +53,7 @@
         </div>
       </div>
       <div id="presets">
-        <h4>Presets:</h4>
+        <h3 class="presets-title">Presets</h3>
         <a class="apmbutton" onClick='printAnylabel("Non Sort","Non Sort","ISS Exception",2);'>1:Non Sort</a>
         <a class="apmbutton" onClick='printAnylabel("Cubiscan","Cubiscan","ISS Exception",2);'>2:Cubiscan</a>
         <a class="apmbutton" onClick='printAnylabel("Hazmat","Hazmat","ISS Exception",2);'>3:Hazmat</a>
