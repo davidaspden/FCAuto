@@ -26,13 +26,12 @@
       <div id="create">
         <div class="titletext" id="inputs">
           <label for="barcodedata"><span id="barcodedata_label">Barcode Data <br></span></label>
-          <input maxlength="43" id="barcodedata" type="text" placeholder="Barcode Data (max 43 Characters)">
+          <input maxlength="43" id="barcodedata" type="text" placeholder="max 43 Characters">
           <label for="displaytext">Enter Display Text <br>
             <i>(human readable!)</i></label>
-          <input maxlength="43" id="displaytext" type="text">
+          <input maxlength="43" id="displaytext" type="text" placeholder="Human Readable Text">
           <label for="quantity">
-            Enter Quantity
-            <i>max 500</i></label>
+            Enter Quantity</label>
           <input maxlength="3" id="quantity" type="number" value="1" max="500" min="1" step="1">
           <p class="mainPrint"><a class="apmbutton" onClick="addPreset();">Add Preset</a><a class="apmbutton" onClick="clearUserPresets();">Clear Presets</a><a class="apmbutton"
               onClick="printLabel();">Print Label</a><a href="http://localhost:5965/webui"><svg class="rotating"

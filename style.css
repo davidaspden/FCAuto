@@ -478,3 +478,15 @@ cursor: pointer;
     justify-content: center;
     padding: 0 2px;
 }
+
+.delete-btn:hover {
+cursor: pointer;
+    color: rgba(255, 0, 0, 0.874);
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+}
