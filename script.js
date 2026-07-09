@@ -204,16 +204,47 @@ function applyTitleGradientTheme(themeName) {
   choices.forEach(function(choice) {
     choice.classList.toggle('active', choice.dataset.gradientChoice === theme);
   });
+
+  return theme;
+}
+
+function normalizeGradientTheme(themeName) {
+  var map = {
+    'amazon-blue': 'amazon-blue',
+    'amazonBlue': 'amazon-blue',
+    'blue': 'amazon-blue',
+    'subtle-pink': 'subtle-pink',
+    'subtlePink': 'subtle-pink',
+    'pink': 'subtle-pink',
+    'blue-white': 'blue-white',
+    'blueWhite': 'blue-white',
+    'blue-to-white': 'blue-white',
+    'white-blue': 'blue-white'
+  };
+
+  return map[themeName] || 'amazon-blue';
+}
+
+function getStoredGradientTheme() {
+  var keys = ['titleGradientTheme', 'selectedGradientTheme', 'selectedGradient'];
+  for (var i = 0; i < keys.length; i++) {
+    var value = localStorage.getItem(keys[i]);
+    if (value) {
+      return normalizeGradientTheme(value);
+    }
+  }
+  return 'amazon-blue';
 }
 
 function initGradientPicker() {
   var picker = document.getElementById('gradientPicker');
+  var storedTheme = getStoredGradientTheme();
+  var appliedTheme = applyTitleGradientTheme(storedTheme);
+  localStorage.setItem('titleGradientTheme', appliedTheme);
+
   if (!picker) {
     return;
   }
-
-  var storedTheme = localStorage.getItem('titleGradientTheme') || 'amazon-blue';
-  applyTitleGradientTheme(storedTheme);
 
   picker.addEventListener('click', function(event) {
     var choice = event.target.closest('.gradient-choice');
@@ -221,9 +252,9 @@ function initGradientPicker() {
       return;
     }
 
-    var theme = choice.dataset.gradientChoice;
-    applyTitleGradientTheme(theme);
-    localStorage.setItem('titleGradientTheme', theme);
+    var theme = choice.dataset.gradientChoice || choice.dataset.gradient;
+    var applied = applyTitleGradientTheme(theme);
+    localStorage.setItem('titleGradientTheme', applied);
   });
 }
 
