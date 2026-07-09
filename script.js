@@ -258,6 +258,19 @@ function initGradientPicker() {
   });
 }
 
+function bindEnterToPrint() {
+  var inputFields = document.querySelectorAll('#inputs input');
+  inputFields.forEach(function(input) {
+    input.addEventListener('keydown', function(event) {
+      if (event.key !== 'Enter') {
+        return;
+      }
+      event.preventDefault();
+      printLabel();
+    });
+  });
+}
+
 //////////////////////////////////////////////////////////
 
 function printAnylabel(b, t, d,n) {
@@ -430,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadPresets();
   bindUserPresetDeleteHandler();
   initGradientPicker();
+  bindEnterToPrint();
 });
 
 document.addEventListener('keydown', function(event) {

@@ -171,6 +171,9 @@ p,td {
   gap: 10px;
   padding-right: 88px;
   margin-top: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 3px solid #f7b800;
 }
 
 .title-mark {
@@ -219,8 +222,6 @@ p,td {
 
 .title h1 {
   margin: 0;
-  padding-bottom: 3px;
-  border-bottom: 3px solid #f7b800;
   cursor: default;
   user-select: none;
 }
@@ -376,7 +377,31 @@ input[type="text"]:focus, input[type="number"]:focus {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
 
+.apmbutton--print {
+  color: #ffffff;
+  border: 1px solid #08406f;
+  background-color: #0b63a8;
+  background-image: -webkit-gradient(linear,
+      left top,
+      left bottom,
+      from(#1a88df),
+      to(#0a4f86));
+}
+
+.apmbutton--print:hover {
+  color: #ffffff;
+  border: 1px solid #062f52;
+  background-color: #0a5a98;
+  background-image: -webkit-gradient(linear,
+      left top,
+      left bottom,
+      from(#28a0ff),
+      to(#0a4a7c));
 }
 
 #presets {
@@ -472,7 +497,21 @@ input[type="text"]:focus, input[type="number"]:focus {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0px 0px;
+  gap: 8px 0px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.45) 0%, rgba(221, 238, 255, 0.22) 55%, rgba(255, 255, 255, 0.14) 100%);
+  box-shadow: 0 8px 22px rgba(10, 38, 64, 0.2);
+  backdrop-filter: blur(3px);
+}
+
+#inputs label {
+  margin-top: 2px;
+}
+
+#inputs input {
+  margin-bottom: 4px;
 }
 
 #create {
@@ -480,18 +519,37 @@ input[type="text"]:focus, input[type="number"]:focus {
   justify-content: center;
   align-items: flex-start;
   flex-wrap: nowrap;
-  gap: 50px 50px;
+  gap: 36px;
   flex-grow: 1;
+  width: 100%;
+  margin: 14px 0 18px;
+  padding: 8px 12px;
 }
 #barcodePreviewSection {
   align-self: center;
-  border: 2px solid #000;
-  padding: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 246, 255, 0.72) 100%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
   flex-direction: column;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
+}
+
+#barcodePreviewTitle {
+  width: 100%;
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(8, 64, 111, 0.25);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #163f66;
+  text-align: left;
 }
 
 .delete-btn {
