@@ -85,11 +85,26 @@ function addPreset() {
   var saved = getUserPresets();
   saved.push(preset);
   saveUserPresets(saved);
+  var preset = {
+    id: createPresetId(),
+    barcode: barcode,
+    displayText: displayText
+  };
+  var pre = buildUserPresetButton(preset);
+  var presets = document.getElementById("presets");
+  presets.appendChild(pre);
+
+  var saved = getUserPresets();
+  saved.push(preset);
+  saveUserPresets(saved);
 }
 
 function loadPresets() {
   var saved = getUserPresets();
+  var saved = getUserPresets();
   var presetsDiv = document.getElementById("presets");
+  var migrated = false;
+
   var migrated = false;
 
   saved.forEach(function(p) {
@@ -98,8 +113,17 @@ function loadPresets() {
       migrated = true;
     }
     var pre = buildUserPresetButton(p);
+    if (!p.id) {
+      p.id = createPresetId();
+      migrated = true;
+    }
+    var pre = buildUserPresetButton(p);
     presetsDiv.appendChild(pre);
   });
+
+  if (migrated) {
+    saveUserPresets(saved);
+  }
 
   if (migrated) {
     saveUserPresets(saved);
@@ -426,6 +450,11 @@ description = dateString.padEnd(43,' ') + timeString;
   printAnylabel("TimePrinted", "TimePrinted", description,1);
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+  loadPresets();
+  bindUserPresetDeleteHandler();
+  initGradientPicker();
+});
 document.addEventListener('DOMContentLoaded', function() {
   loadPresets();
   bindUserPresetDeleteHandler();
