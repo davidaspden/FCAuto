@@ -73,32 +73,37 @@ function addPreset() {
     return;
   }
   barcode = barcode.trim();
-  pre = document.createElement('a');
-  pre.innerHTML = displayText != '' ? displayText : barcode;
-  pre.classList.add('apmbutton');
-  pre.setAttribute('onClick','printAnylabel("'+(displayText !="" ? displayText : barcode) +'","'+ (barcode != '' ? barcode : displayText) + '","ISS Exception",2);')
-  presets = document.getElementById("presets");
-  pre.dataset.user = "true";
-  presets.appendChild(pre)
+  var preset = {
+    id: createPresetId(),
+    barcode: barcode,
+    displayText: displayText
+  };
+  var pre = buildUserPresetButton(preset);
+  var presets = document.getElementById("presets");
+  presets.appendChild(pre);
 
-  ///
-
-    var saved = JSON.parse(localStorage.getItem('userPresets') || '[]');
-  saved.push({ barcode: barcode, displayText: displayText });
-  localStorage.setItem('userPresets', JSON.stringify(saved));
+  var saved = getUserPresets();
+  saved.push(preset);
+  saveUserPresets(saved);
 }
 
 function loadPresets() {
-  var saved = JSON.parse(localStorage.getItem('userPresets') || '[]');
+  var saved = getUserPresets();
   var presetsDiv = document.getElementById("presets");
+  var migrated = false;
+
   saved.forEach(function(p) {
-    var pre = document.createElement('a');
-    pre.innerHTML = p.displayText != '' ? p.displayText : p.barcode;
-    pre.dataset.user = "true";
-    pre.classList.add('apmbutton');
-    pre.setAttribute('onClick', 'printAnylabel("' + (p.displayText != "" ? p.displayText : p.barcode) + '","' + (p.barcode != '' ? p.barcode : p.displayText) + '","ISS Exception",2);');
+    if (!p.id) {
+      p.id = createPresetId();
+      migrated = true;
+    }
+    var pre = buildUserPresetButton(p);
     presetsDiv.appendChild(pre);
   });
+
+  if (migrated) {
+    saveUserPresets(saved);
+  }
 }
 
 function clearUserPresets() {
@@ -107,6 +112,119 @@ function clearUserPresets() {
   var presetsDiv = document.getElementById("presets");
   var buttons = presetsDiv.querySelectorAll('a.apmbutton[data-user]');
   buttons.forEach(function(b) { b.remove(); });
+}
+
+function createPresetId() {
+  return Date.now().toString(36) + '-' + genId();
+}
+
+function getUserPresets() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('userPresets') || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveUserPresets(saved) {
+  localStorage.setItem('userPresets', JSON.stringify(saved));
+}
+
+function buildUserPresetButton(preset) {
+  var pre = document.createElement('a');
+  var label = preset.displayText != '' ? preset.displayText : preset.barcode;
+  pre.appendChild(document.createTextNode(label));
+
+  var deleteBtn = document.createElement('span');
+  deleteBtn.classList.add('delete-btn');
+  deleteBtn.title = 'Remove preset';
+  deleteBtn.setAttribute('aria-label', 'Remove preset');
+  deleteBtn.textContent = '×';
+  pre.appendChild(deleteBtn);
+
+  pre.dataset.user = 'true';
+  pre.dataset.presetId = preset.id;
+  pre.classList.add('apmbutton');
+  pre.onclick = function() {
+    printAnylabel(
+      preset.displayText != '' ? preset.displayText : preset.barcode,
+      preset.barcode != '' ? preset.barcode : preset.displayText,
+      'ISS Exception',
+      2
+    );
+  };
+  return pre;
+}
+
+function removeStoredPreset(presetId) {
+  var saved = getUserPresets();
+  var index = saved.findIndex(function(p) {
+    return p.id === presetId;
+  });
+  if (index === -1) {
+    return;
+  }
+  saved.splice(index, 1);
+  saveUserPresets(saved);
+}
+
+function bindUserPresetDeleteHandler() {
+  var presetsDiv = document.getElementById('presets');
+  if (!presetsDiv) {
+    return;
+  }
+
+  // Capture phase prevents the anchor click handler from firing on delete clicks.
+  presetsDiv.addEventListener('click', function(event) {
+    var deleteBtn = event.target.closest('.delete-btn');
+    if (!deleteBtn) {
+      return;
+    }
+
+    var presetButton = deleteBtn.closest('a.apmbutton[data-user]');
+    if (!presetButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    removeStoredPreset(presetButton.dataset.presetId);
+    presetButton.remove();
+  }, true);
+}
+
+function applyTitleGradientTheme(themeName) {
+  var validThemes = ['amazon-blue', 'subtle-pink', 'blue-white'];
+  var theme = validThemes.indexOf(themeName) !== -1 ? themeName : 'amazon-blue';
+  document.documentElement.setAttribute('data-title-gradient', theme);
+
+  var choices = document.querySelectorAll('.gradient-choice');
+  choices.forEach(function(choice) {
+    choice.classList.toggle('active', choice.dataset.gradientChoice === theme);
+  });
+}
+
+function initGradientPicker() {
+  var picker = document.getElementById('gradientPicker');
+  if (!picker) {
+    return;
+  }
+
+  var storedTheme = localStorage.getItem('titleGradientTheme') || 'amazon-blue';
+  applyTitleGradientTheme(storedTheme);
+
+  picker.addEventListener('click', function(event) {
+    var choice = event.target.closest('.gradient-choice');
+    if (!choice) {
+      return;
+    }
+
+    var theme = choice.dataset.gradientChoice;
+    applyTitleGradientTheme(theme);
+    localStorage.setItem('titleGradientTheme', theme);
+  });
 }
 
 //////////////////////////////////////////////////////////
@@ -277,7 +395,11 @@ description = dateString.padEnd(43,' ') + timeString;
   printAnylabel("TimePrinted", "TimePrinted", description,1);
 }
 
-document.addEventListener('DOMContentLoaded', loadPresets);
+document.addEventListener('DOMContentLoaded', function() {
+  loadPresets();
+  bindUserPresetDeleteHandler();
+  initGradientPicker();
+});
 
 document.addEventListener('keydown', function(event) {
     // Prevent shortcuts from firing if you're actively typing in the input fields

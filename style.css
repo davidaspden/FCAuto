@@ -3,6 +3,19 @@
   --border-size: 0.15rem;
   --border-bg: conic-gradient(blue, aqua, blue, blue);
   --padding: 4px;
+  --title-gradient: linear-gradient(to bottom, #0f4778 0%, #1c6db0 45%, #58a5e2 100%);
+}
+
+:root[data-title-gradient='amazon-blue'] {
+  --title-gradient: linear-gradient(to bottom, #0f4778 0%, #1c6db0 45%, #58a5e2 100%);
+}
+
+:root[data-title-gradient='subtle-pink'] {
+  --title-gradient: linear-gradient(to bottom, #ffe8f1 0%, #ffd7e8 52%, #f8bdd8 100%);
+}
+
+:root[data-title-gradient='blue-white'] {
+  --title-gradient: linear-gradient(to bottom, #3f87ff 0%, #89b8ff 45%, #ffffff 100%);
 }
 
 @font-face {
@@ -82,7 +95,7 @@ body {
     content: '';
     position: absolute;
     inset: var(--border-size);
-    background: linear-gradient(to bottom, #87b028 0%, /* Deep emerald shadow */ #008822 45%, /* Vibrant arcade green */ #ffffff 49%, /* Sharp white reflection highlight */ #d4af37 51%, /* Gold horizon line */ #8a6f27 55%, /* Deep gold shadow */ #ffd700 100% /* Arcade gold base */);
+    background: var(--title-gradient);
     z-index: -1;
     border-radius: calc(var(--border-radius) - var(--border-size));
   }
@@ -138,7 +151,48 @@ p,td {
   display: table;
   text-align: center;
   z-index: 2;
+  position: relative;
   transition: 0.1s 0.1s cubic-bezier(.93, .43, .56, .9);
+}
+
+#gradientPicker {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+
+.gradient-choice {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.gradient-choice:hover {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.gradient-choice[data-gradient-choice='amazon-blue'] {
+  background: linear-gradient(to bottom, #0f4778 0%, #1c6db0 45%, #58a5e2 100%);
+}
+
+.gradient-choice[data-gradient-choice='subtle-pink'] {
+  background: linear-gradient(to bottom, #ffe8f1 0%, #ffd7e8 52%, #f8bdd8 100%);
+}
+
+.gradient-choice[data-gradient-choice='blue-white'] {
+  background: linear-gradient(to bottom, #3f87ff 0%, #89b8ff 45%, #ffffff 100%);
+}
+
+.gradient-choice.active {
+  border-color: #111;
+  transform: scale(1.08);
 }
 
 .title.rotating-border:hover {
@@ -411,4 +465,16 @@ input[type="text"]:focus, input[type="number"]:focus {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.delete-btn {
+cursor: pointer;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
 }

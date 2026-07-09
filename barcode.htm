@@ -17,12 +17,16 @@
 <body>
   <div id="containerBarcode">
     <div class="title rotating-border">
+      <div id="gradientPicker" aria-label="Choose title background gradient">
+        <div class="gradient-choice" data-gradient-choice="amazon-blue" title="Amazon Blue"></div>
+        <div class="gradient-choice" data-gradient-choice="subtle-pink" title="Subtle Pink"></div>
+        <div class="gradient-choice" data-gradient-choice="blue-white" title="Blue to White"></div>
+      </div>
       <h1>Dave's Exceptions Barcode Generator</h1>
       <div id="create">
         <div class="titletext" id="inputs">
-          <label for="barcodedata"><span id="barcodedata_label">Barcode Data <br><i>(max 43
-                Characters)</i></span></label>
-          <input maxlength="43" id="barcodedata" type="text">
+          <label for="barcodedata"><span id="barcodedata_label">Barcode Data <br></span></label>
+          <input maxlength="43" id="barcodedata" type="text" placeholder="Barcode Data (max 43 Characters)">
           <label for="displaytext">Enter Display Text <br>
             <i>(human readable!)</i></label>
           <input maxlength="43" id="displaytext" type="text">
