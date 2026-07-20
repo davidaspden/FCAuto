@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const parseStatus = document.getElementById('parseStatus');
   
   const augmentedInput = document.getElementById('augmentedInput');
+  const augmentedGroupInput = document.getElementById('augmentedGroupInput');
   const addAugmentedBtn = document.getElementById('addAugmentedBtn');
   const clearAugmentedBtn = document.getElementById('clearAugmentedBtn');
   const augmentedStatus = document.getElementById('augmentedStatus');
@@ -90,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isScanModeActive = false;
   let animationFrameId = null;
   let lastFrameTime = null;
+  let overlayTimeout = null;
 
   // Constants
   const MS_IN_HOUR = 60 * 60 * 1000;
@@ -119,9 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
       clearAugmentedBtn.addEventListener('click', clearAllAugmentedContainers);
     }
     if (augmentedInput) {
+      augmentedInput.addEventListener('input', () => checkForGroupInInput(false));
       augmentedInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
+          checkForGroupInInput(true);
           addAugmentedContainers();
         }
       });
@@ -458,17 +462,48 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const totalItems = allDiscoveredRecords.length;
-      const tsxPct = totalItems > 0 ? Math.round((tsxCount / totalItems) * 100) : 0;
-      const csxPct = totalItems > 0 ? Math.round((csxCount / totalItems) * 100) : 0;
+
+      // Group parsedStows by Container/Tote ID to calculate time metrics per tote
+      const containerDurations = {};
+      parsedStows.forEach(stow => {
+        const cId = stow.originalRecord?.outermostScannableId || stow.originalRecord?.scannableId || stow.asin;
+        const durationMins = Math.round((stow.timestamp - minTime) / (60 * 1000));
+        
+        if (!containerDurations[cId] || durationMins > containerDurations[cId]) {
+          containerDurations[cId] = durationMins;
+        }
+      });
+
+      let over1440ToteCount = 0;
+      let longestToteId = null;
+      let maxToteMins = -1;
+
+      Object.entries(containerDurations).forEach(([cId, mins]) => {
+        if (mins > 1440) {
+          over1440ToteCount++;
+        }
+        if (mins > maxToteMins) {
+          maxToteMins = mins;
+          longestToteId = cId;
+        }
+      });
+
+      const formatDurationText = (mins) => {
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return `${mins}m (${h}h ${m}m)`;
+      };
+
+      const longestToteStr = longestToteId ? `${longestToteId} [${formatDurationText(maxToteMins)}]` : 'None';
 
       setStatus('success', 
         `Found ${totalItems} records! • ` +
         `${uniqueContainers.size} containers • ` +
         `${uniqueAsins.size} unique ASINs • ` +
-        `tsX (totes): ${tsxPct}% • ` +
-        `csX (cases): ${csxPct}%`
+        `⏱️ Totes > 1440m: ${over1440ToteCount} • ` +
+        `🏆 Longest Tote: ${longestToteStr}`
       );
-      
+
       // Calculate warehouse locations summary
       const locationList = allDiscoveredRecords
         .map(rec => rec.outermostScannableId || rec.scannableId)
@@ -1049,6 +1084,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Global keyboard shortcut: '/' toggles and activates Scan Mode
+    document.addEventListener('keydown', (e) => {
+      const target = e.target;
+      const isInputBox = target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || 
+                         (target.tagName === 'INPUT' && target !== hiddenInput);
+      
+      if (isInputBox) return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        
+        // Toggle Scan Mode ON/OFF
+        toggle.checked = !isScanModeActive;
+        toggle.dispatchEvent(new Event('change'));
+      }
+    });
+
     // Global document click listener: keep refocusing the hidden scanner input
     // so the user never loses keyboard focus (unless editing inputs/textareas)
     document.addEventListener('click', (e) => {
@@ -1140,6 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function disableScanMode() {
     isScanModeActive = false;
+    dismissPriorityScanOverlayImmediately();
     const hiddenInput = document.getElementById('barcodeHiddenInput');
     const panel = document.getElementById('scanStatusPanel');
     const text = document.getElementById('scanStatusText');
@@ -1185,7 +1238,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const query = code.toUpperCase();
     
-    // Search all matching stows (could be multiple if container holds multiple items)
     const matches = parsedStows.filter(stow => {
       const rec = stow.originalRecord;
       const asin = stow.asin.toUpperCase();
@@ -1206,18 +1258,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (matches.length > 0) {
-      // Ensure priority FUD rows are visible, and augmented action row is hidden
       const resAsinRow = document.getElementById('resAsinRow');
       if (resAsinRow) resAsinRow.classList.remove('hidden');
       const resDeadlineRow = document.getElementById('resDeadlineRow');
       if (resDeadlineRow) resDeadlineRow.classList.remove('hidden');
       const augmentedActionRow = document.getElementById('resAugmentedActionRow');
       if (augmentedActionRow) augmentedActionRow.classList.add('hidden');
-      // Sort matches chronologically to find the earliest (most urgent) deadline
+      
       matches.sort((a, b) => a.timestamp - b.timestamp);
       const earliestMatch = matches[0];
 
-      // Calculate remaining time relative to System Real Time if it overlaps, otherwise fall back to Simulated Current Time
       const realNow = new Date().getTime();
       const isRealTimeOverlap = (realNow >= minTime && realNow <= maxTime);
       const referenceTime = isRealTimeOverlap ? realNow : simulatedCurrentTime;
@@ -1225,27 +1275,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const isForward = isVariableForwardLooking(selectedTimeKey);
       const deltaMs = earliestMatch.timestamp - referenceTime;
       
-      // Resolve dynamic color based on Graph 2 shift deadlines:
-      // <8h = Cyan (#06b6d4), 8-12h = Indigo (#6366f1), 12-18h = Fuchsia (#d946ef), 18-24h = Orange (#f97316), Overdue = Red (#ef4444)
-      let matchColor = 'var(--accent-success)'; // Default Emerald Green for >24 hours
+      let matchColor = 'var(--accent-success)';
       if (isForward) {
         if (deltaMs < 0) {
-          matchColor = '#ef4444'; // Red
+          matchColor = '#ef4444';
         } else {
           const hoursRemaining = deltaMs / (3600 * 1000);
           if (hoursRemaining < 8) {
-            matchColor = '#06b6d4'; // Cyan
+            matchColor = '#06b6d4';
           } else if (hoursRemaining < 12) {
-            matchColor = '#6366f1'; // Indigo
+            matchColor = '#6366f1';
           } else if (hoursRemaining < 18) {
-            matchColor = '#d946ef'; // Fuchsia
+            matchColor = '#d946ef';
           } else if (hoursRemaining < 24) {
-            matchColor = '#f97316'; // Orange
+            matchColor = '#f97316';
           }
         }
       }
 
-      // Priority FUD Match!
       panel.className = 'scan-status-panel match';
       panel.style.borderColor = matchColor;
       panel.style.boxShadow = `0 0 20px ${getRgba(matchColor, 0.35)}`;
@@ -1265,7 +1312,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultHeader.style.textShadow = `0 0 10px ${getRgba(matchColor, 0.5)}`;
       }
       
-      // 1. Aggregate unique ASINs and quantities in matches
+      const resGroupRow = document.getElementById('resGroupRow');
+      if (resGroupRow) resGroupRow.classList.add('hidden');
+
       const asinCounts = {};
       matches.forEach(m => {
         asinCounts[m.asin] = (asinCounts[m.asin] || 0) + 1;
@@ -1284,7 +1333,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (resAsin) resAsin.innerHTML = asinHtml;
 
-      // 2. Aggregate unique outermost/internal containers in matches
       const containers = new Set();
       matches.forEach(m => {
         const rec = m.originalRecord;
@@ -1293,8 +1341,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (resContainer) resContainer.textContent = Array.from(containers).join(', ');
 
-
-      
       if (resDeadline) {
         if (isForward) {
           if (deltaMs < 0) {
@@ -1312,21 +1358,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       resultCard.classList.remove('hidden');
-      
-      // Play priority cyberpunk beep (high-pitched alarm)
       playBeep('priority');
-      
-      // Visual page flash indicator matching the priority color
       flashVisualPageIndicator(matchColor);
+      triggerPriorityScanOverlay('PRIORITY');
     } else {
-      // Check if it exists in augmented containers list (either pending or found)
-      const isAugmentedMatch = augmentedTotes.includes(query) || augmentedFoundTotes.includes(query);
-      if (isAugmentedMatch) {
-        // If it was pending, move it to found list
-        if (augmentedTotes.includes(query)) {
-          augmentedTotes = augmentedTotes.filter(t => t !== query);
-          if (!augmentedFoundTotes.includes(query)) {
-            augmentedFoundTotes.push(query);
+      const pendingMatch = augmentedTotes.find(t => t.id === query);
+      const foundMatch = augmentedFoundTotes.find(t => t.id === query);
+      const augMatch = pendingMatch || foundMatch;
+
+      if (augMatch) {
+        if (pendingMatch) {
+          augmentedTotes = augmentedTotes.filter(t => t.id !== query);
+          if (!augmentedFoundTotes.some(t => t.id === query)) {
+            augmentedFoundTotes.push(augMatch);
           }
           localStorage.setItem('augmentedTotes', JSON.stringify(augmentedTotes));
           localStorage.setItem('augmentedFoundTotes', JSON.stringify(augmentedFoundTotes));
@@ -1334,8 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
           updateAugmentedReadout();
         }
 
-        const matchColor = 'var(--accent-secondary)'; // Cyan/secondary theme
-        
+        const matchColor = 'var(--accent-secondary)';
         panel.className = 'scan-status-panel match';
         panel.style.borderColor = matchColor;
         panel.style.boxShadow = `0 0 20px ${getRgba(matchColor, 0.35)}`;
@@ -1347,36 +1390,41 @@ document.addEventListener('DOMContentLoaded', () => {
           indicator.style.boxShadow = `0 0 8px ${matchColor}`;
         }
 
-        text.textContent = `Augmented container detected: "${code}"`;
+        const groupTitle = augMatch.group || 'Other';
+        text.textContent = `Augmented container detected: "${code}" (Group: ${groupTitle})`;
         
         if (resultHeader) {
-          resultHeader.textContent = 'AUGMENTED TOTE FOUND';
+          resultHeader.textContent = `AUGMENTED TOTE FOUND (${groupTitle})`;
           resultHeader.style.color = matchColor;
           resultHeader.style.textShadow = `0 0 10px ${getRgba(matchColor, 0.5)}`;
         }
 
-        // Hide ASIN row and Deadline row, show container row and action row
         const resAsinRow = document.getElementById('resAsinRow');
         if (resAsinRow) resAsinRow.classList.add('hidden');
         const resDeadlineRow = document.getElementById('resDeadlineRow');
         if (resDeadlineRow) resDeadlineRow.classList.add('hidden');
+
+        const resGroupRow = document.getElementById('resGroupRow');
+        const resGroup = document.getElementById('resGroup');
+        if (resGroupRow && resGroup) {
+          resGroupRow.classList.remove('hidden');
+          resGroup.textContent = groupTitle;
+        }
+
         const augmentedActionRow = document.getElementById('resAugmentedActionRow');
         if (augmentedActionRow) augmentedActionRow.classList.remove('hidden');
 
-        // Container link:
         if (resContainer) {
           const url = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${query}`;
           resContainer.innerHTML = `<a href="${url}" target="_blank" style="color: var(--accent-secondary); text-decoration: none; font-weight: 600; border-bottom: 1px dashed rgba(6, 182, 212, 0.4); padding-bottom: 1px;">${code}</a>`;
         }
 
-        // Hook up the delete button
         const removeBtn = document.getElementById('resRemoveAugmentedBtn');
         if (removeBtn) {
           const newRemoveBtn = removeBtn.cloneNode(true);
           removeBtn.parentNode.replaceChild(newRemoveBtn, removeBtn);
           newRemoveBtn.addEventListener('click', () => {
             removeAugmentedContainer(query);
-            // Hide result card and reset panel state
             resultCard.classList.add('hidden');
             panel.className = 'scan-status-panel idle';
             panel.style.borderColor = '';
@@ -1392,12 +1440,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         resultCard.classList.remove('hidden');
-        
-        // Play positive arpeggio
         playBeep('priority');
         flashVisualPageIndicator(matchColor);
+        triggerPriorityScanOverlay(`AUGMENTED (${groupTitle})`);
       } else {
-        // Non-Priority scan
+        dismissPriorityScanOverlayImmediately();
+
         panel.className = 'scan-status-panel no-match';
         panel.style.borderColor = '#ef4444';
         panel.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.25)';
@@ -1417,11 +1465,13 @@ document.addEventListener('DOMContentLoaded', () => {
           resultHeader.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
         }
         
-        // Reset row visibilities
         const resAsinRow = document.getElementById('resAsinRow');
         if (resAsinRow) resAsinRow.classList.remove('hidden');
         const resDeadlineRow = document.getElementById('resDeadlineRow');
         if (resDeadlineRow) resDeadlineRow.classList.remove('hidden');
+        const resGroupRow = document.getElementById('resGroupRow');
+        if (resGroupRow) resGroupRow.classList.add('hidden');
+
         const augmentedActionRow = document.getElementById('resAugmentedActionRow');
         if (augmentedActionRow) augmentedActionRow.classList.add('hidden');
         
@@ -1434,11 +1484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         resultCard.classList.remove('hidden');
-        
-        // Play low error buzz
         playBeep('error');
-        
-        // Visual page flash indicator (red)
         flashVisualPageIndicator('#ef4444');
       }
     }
@@ -1463,6 +1509,69 @@ document.addEventListener('DOMContentLoaded', () => {
       flash.style.opacity = '0';
       setTimeout(() => flash.remove(), 400);
     }, 50);
+  }
+
+  // Fullscreen CRT Sci-Fi Priority Scan Overlay Trigger
+  function triggerPriorityScanOverlay(customTitle) {
+    const overlay = document.getElementById('priorityScanOverlay');
+    if (!overlay) return;
+
+    clearTimeout(overlayTimeout);
+
+    document.body.classList.add('scan-overlay-active');
+
+    overlay.style.pointerEvents = 'auto';
+    overlay.style.transition = 'opacity 0.2s ease-in';
+    overlay.style.opacity = '1';
+    overlay.classList.remove('hidden');
+
+    const priorityEl = overlay.querySelector('.priority');
+    if (priorityEl) {
+      priorityEl.textContent = customTitle || 'PRIORITY';
+    }
+
+    const dismissOverlay = () => {
+      overlay.style.pointerEvents = 'none';
+      overlay.style.transition = 'opacity 0.6s ease-out';
+      overlay.style.opacity = '0';
+
+      overlayTimeout = setTimeout(() => {
+        overlay.classList.add('hidden');
+        document.body.classList.remove('scan-overlay-active');
+
+        // Refocus barcode scanner hidden input if scanning is active
+        const hiddenInput = document.getElementById('barcodeHiddenInput');
+        if (hiddenInput && isScanModeActive) {
+          hiddenInput.focus();
+        }
+      }, 600);
+    };
+
+    overlay.onclick = (e) => {
+      e.stopPropagation();
+      dismissOverlay();
+    };
+
+    // Auto dismiss after 1.5 seconds (halved from 3s) for fast continuous handheld barcode scanning workflow
+    overlayTimeout = setTimeout(dismissOverlay, 1500);
+  }
+
+  function dismissPriorityScanOverlayImmediately() {
+    const overlay = document.getElementById('priorityScanOverlay');
+    if (!overlay) return;
+
+    clearTimeout(overlayTimeout);
+
+    overlay.style.pointerEvents = 'none';
+    overlay.style.transition = 'none';
+    overlay.style.opacity = '0';
+    overlay.classList.add('hidden');
+    document.body.classList.remove('scan-overlay-active');
+
+    const hiddenInput = document.getElementById('barcodeHiddenInput');
+    if (hiddenInput && isScanModeActive) {
+      hiddenInput.focus();
+    }
   }
 
   // Synthetic beep generator using Web Audio API
@@ -1636,19 +1745,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Helper to normalize stored or new tote objects
+  function normalizeTote(tote) {
+    if (!tote) return null;
+    if (typeof tote === 'string') {
+      return { id: tote.trim().toUpperCase(), group: 'Other' };
+    }
+    if (typeof tote === 'object') {
+      const id = (tote.id || tote.tote || tote.code || '').toString().trim().toUpperCase();
+      let group = (tote.group || '').toString().trim();
+      if (!group || group.toLowerCase() === 'ungrouped') group = 'Other';
+      if (id) {
+        return { id: id, group: group };
+      }
+    }
+    return null;
+  }
+
+  // Parse group:GroupName automatically from input box
+  // While typing, runs on first comma (group:GroupName,). On submit, runs even without comma.
+  function checkForGroupInInput(isFinalSubmit = false) {
+    if (!augmentedInput || !augmentedGroupInput) return;
+    const val = augmentedInput.value;
+    if (!val) return;
+
+    // 1. While typing: match group:GroupName, (requires trailing comma)
+    const commaMatch = val.match(/(?:^|[\s,])group:\s*([^,]+),/i);
+
+    if (commaMatch) {
+      const extractedGroup = commaMatch[1].trim();
+      if (extractedGroup) {
+        augmentedGroupInput.value = extractedGroup;
+        // Strip group:GroupName, out of barcode input
+        let cleaned = val.replace(/(?:^|[\s,])group:\s*[^,]+,\s*/i, '').trim();
+        augmentedInput.value = cleaned;
+      }
+    } else if (isFinalSubmit === true) {
+      // 2. On submit (Add click / Enter): match group:GroupName even without a trailing comma
+      const submitMatch = val.match(/(?:^|[\s,])group:\s*([^\s,]+)/i);
+      if (submitMatch) {
+        const extractedGroup = submitMatch[1].trim();
+        if (extractedGroup) {
+          augmentedGroupInput.value = extractedGroup;
+          let cleaned = val.replace(/(?:^|[\s,])group:\s*[^\s,]+/i, '').trim();
+          cleaned = cleaned.replace(/^,\s*/, '');
+          augmentedInput.value = cleaned;
+        }
+      }
+    }
+  }
+
   // Initialize Augmented Containers from localStorage
   function initAugmentedContainers() {
     try {
       const stored = localStorage.getItem('augmentedTotes');
       if (stored) {
-        augmentedTotes = JSON.parse(stored) || [];
+        const parsed = JSON.parse(stored) || [];
+        augmentedTotes = parsed.map(normalizeTote).filter(Boolean);
       } else {
         augmentedTotes = [];
       }
 
       const storedFound = localStorage.getItem('augmentedFoundTotes');
       if (storedFound) {
-        augmentedFoundTotes = JSON.parse(storedFound) || [];
+        const parsedFound = JSON.parse(storedFound) || [];
+        augmentedFoundTotes = parsedFound.map(normalizeTote).filter(Boolean);
       } else {
         augmentedFoundTotes = [];
       }
@@ -1662,76 +1823,96 @@ document.addEventListener('DOMContentLoaded', () => {
     checkScannerCardVisibility();
   }
 
+  // Helper to render grouped containers inside pending / found sections
+  function renderGroupedTotesList(containerEl, totesList, isFound) {
+    containerEl.innerHTML = '';
+    if (!totesList || totesList.length === 0) {
+      const emptyMsg = isFound ? 'No found containers.' : 'No pending containers.';
+      containerEl.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 4px;">${emptyMsg}</div>`;
+      return;
+    }
+
+    // Group items by group property
+    const groupsMap = {};
+    totesList.forEach(tote => {
+      const g = (tote.group && tote.group.trim()) ? tote.group.trim() : 'Other';
+      if (!groupsMap[g]) {
+        groupsMap[g] = [];
+      }
+      groupsMap[g].push(tote);
+    });
+
+    // Sort group names: alphabetical, but 'Other' is listed last
+    const sortedGroupNames = Object.keys(groupsMap).sort((a, b) => {
+      if (a.toLowerCase() === 'other') return 1;
+      if (b.toLowerCase() === 'other') return -1;
+      return a.localeCompare(b);
+    });
+
+    sortedGroupNames.forEach(groupName => {
+      const groupItems = groupsMap[groupName].sort((a, b) => a.id.localeCompare(b.id));
+
+      const groupBlock = document.createElement('div');
+      groupBlock.className = 'aug-group-block';
+
+      const groupHeader = document.createElement('div');
+      groupHeader.className = 'aug-group-header';
+      groupHeader.innerHTML = `
+        <span class="aug-group-badge">📁 ${groupName}</span>
+        <span class="aug-group-count">(${groupItems.length} container${groupItems.length !== 1 ? 's' : ''})</span>
+      `;
+
+      const totesBoxContainer = document.createElement('div');
+      totesBoxContainer.className = 'aug-group-tote-boxes';
+
+      groupItems.forEach(tote => {
+        const box = document.createElement('div');
+        box.className = isFound ? 'aug-tote-box found' : 'aug-tote-box';
+
+        const link = document.createElement('a');
+        link.href = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${tote.id}`;
+        link.target = '_blank';
+        link.textContent = tote.id;
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = '×';
+        delBtn.title = 'Remove container';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeAugmentedContainer(tote.id);
+        });
+
+        box.appendChild(link);
+        box.appendChild(delBtn);
+        totesBoxContainer.appendChild(box);
+      });
+
+      groupBlock.appendChild(groupHeader);
+      groupBlock.appendChild(totesBoxContainer);
+      containerEl.appendChild(groupBlock);
+    });
+  }
+
   // Render open-top box visual lists inside expanded containers card
   function renderAugmentedLists() {
     if (!pendingTotesList || !foundTotesList) return;
-
-    // Render Pending List
-    pendingTotesList.innerHTML = '';
-    if (augmentedTotes.length === 0) {
-      pendingTotesList.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 4px;">No pending containers.</div>`;
-    } else {
-      const sortedPending = [...augmentedTotes].sort((a, b) => a.localeCompare(b));
-      sortedPending.forEach(tote => {
-        const box = document.createElement('div');
-        box.className = 'aug-tote-box';
-        
-        const link = document.createElement('a');
-        link.href = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${tote}`;
-        link.target = '_blank';
-        link.textContent = tote;
-        
-        const delBtn = document.createElement('span');
-        delBtn.className = 'delete-btn';
-        delBtn.textContent = '×';
-        delBtn.title = 'Remove container';
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          removeAugmentedContainer(tote);
-        });
-
-        box.appendChild(link);
-        box.appendChild(delBtn);
-        pendingTotesList.appendChild(box);
-      });
-    }
-
-    // Render Found List
-    foundTotesList.innerHTML = '';
-    if (augmentedFoundTotes.length === 0) {
-      foundTotesList.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 4px;">No found containers.</div>`;
-    } else {
-      const sortedFound = [...augmentedFoundTotes].sort((a, b) => a.localeCompare(b));
-      sortedFound.forEach(tote => {
-        const box = document.createElement('div');
-        box.className = 'aug-tote-box found';
-        
-        const link = document.createElement('a');
-        link.href = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${tote}`;
-        link.target = '_blank';
-        link.textContent = tote;
-        
-        const delBtn = document.createElement('span');
-        delBtn.className = 'delete-btn';
-        delBtn.textContent = '×';
-        delBtn.title = 'Remove container';
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          removeAugmentedContainer(tote);
-        });
-
-        box.appendChild(link);
-        box.appendChild(delBtn);
-        foundTotesList.appendChild(box);
-      });
-    }
+    renderGroupedTotesList(pendingTotesList, augmentedTotes, false);
+    renderGroupedTotesList(foundTotesList, augmentedFoundTotes, true);
   }
 
   // Add items from input
   function addAugmentedContainers() {
     if (!augmentedInput) return;
-    const inputVal = augmentedInput.value;
-    if (!inputVal.trim()) return;
+    checkForGroupInInput(true);
+
+    const inputVal = augmentedInput.value.trim();
+    if (!inputVal) return;
+
+    let groupVal = augmentedGroupInput ? augmentedGroupInput.value.trim() : '';
+    if (!groupVal || groupVal.toLowerCase() === 'ungrouped') {
+      groupVal = 'Other';
+    }
 
     // Split by commas, filter empty values, trim and uppercase
     const newItems = inputVal.split(',')
@@ -1739,10 +1920,12 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(s => s.length > 0);
 
     let addedCount = 0;
-    newItems.forEach(item => {
-      // Don't add to pending if it's already in pending or found
-      if (!augmentedTotes.includes(item) && !augmentedFoundTotes.includes(item)) {
-        augmentedTotes.push(item);
+    newItems.forEach(id => {
+      const existsPending = augmentedTotes.some(t => t.id === id);
+      const existsFound = augmentedFoundTotes.some(t => t.id === id);
+
+      if (!existsPending && !existsFound) {
+        augmentedTotes.push({ id: id, group: groupVal });
         addedCount++;
       }
     });
@@ -1752,7 +1935,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateAugmentedReadout();
       renderAugmentedLists();
       checkScannerCardVisibility();
-      setAugmentedStatus('success', `Added ${addedCount} container(s) successfully!`);
+      setAugmentedStatus('success', `Added ${addedCount} container(s) to Group "${groupVal}"!`);
     } else {
       setAugmentedStatus('success', 'All entered containers are already in the list.');
     }
@@ -1775,8 +1958,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Remove a single item from both lists
   function removeAugmentedContainer(toteId) {
     const uppercaseId = toteId.toUpperCase();
-    augmentedTotes = augmentedTotes.filter(t => t !== uppercaseId);
-    augmentedFoundTotes = augmentedFoundTotes.filter(t => t !== uppercaseId);
+    augmentedTotes = augmentedTotes.filter(t => t.id !== uppercaseId);
+    augmentedFoundTotes = augmentedFoundTotes.filter(t => t.id !== uppercaseId);
     
     localStorage.setItem('augmentedTotes', JSON.stringify(augmentedTotes));
     localStorage.setItem('augmentedFoundTotes', JSON.stringify(augmentedFoundTotes));
@@ -1933,9 +2116,9 @@ document.addEventListener('DOMContentLoaded', () => {
           let dir = '';
           if (runoutNum === '01') dir = ' North';
           else if (runoutNum === '02') dir = ' South';
-          return `West Runout${dir} (${floor})`;
+          return `Runout${dir} (${floor})`;
         }
-        return `West Runout (${floor})`;
+        return `Runout (${floor})`;
       } else {
         // It's a Bridge (extract the remaining ID and keep separate)
         const match = loc.match(/^cvFMS_AS\d{2}_(.+)$/);

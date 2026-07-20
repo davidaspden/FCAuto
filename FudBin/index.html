@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic Stow Time & ASIN Histogram Extractor</title>
+  <title>FudBin | Fud Intelligence Hub & Priority Scanner</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDQyIDQyIiBmaWxsPSJub25lIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImxvZ29HcmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDZiNmQ0Ii8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkOTQ2ZWYiLz48L2xpbmVhckdyYWRpZW50PjxmaWx0ZXIgaWQ9ImxvZ29HbG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIyIiByZXN1bHQ9ImJsdXIiLz48ZmVDb21wb3NpdGUgaW49IlNvdXJjZUdyYXBoaWMiIGluMj0iYmx1ciIgb3BlcmF0b3I9Im92ZXIiLz48L2ZpbHRlcj48L2RlZnM+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2IiByeD0iMTAiIGZpbGw9InVybCgjbG9nb0dyYWQpIiBmaWxsLW9wYWNpdHk9IjAuMTUiIHN0cm9rZT0idXJsKCNsb2dvR3JhZCkiIHN0cm9rZS13aWR0aD0iMS44IiBmaWx0ZXI9InVybCgjbG9nb0dsb3cpIi8+PHJlY3QgeD0iMTAiIHk9IjIyIiB3aWR0aD0iNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiMwNmI2ZDQiLz48cmVjdCB4PSIxNyIgeT0iMTQiIHdpZHRoPSI0IiBoZWlnaHQ9IjE4IiByeD0iMiIgZmlsbD0iIzYzNjZmMSIvPjxyZWN0IHg9IjI0IiB5PSIxMCIgd2lkdGg9IjQiIGhlaWdodD0iMjIiIHJ4PSIyIiBmaWxsPSIjZDk0NmVmIi8+PHJlY3QgeD0iMzEiIHk9IjE4IiB3aWR0aD0iNCIgaGVpZ2h0PSIxNCIgcng9IjIiIGZpbGw9IiMxMGI5ODEiLz48cGF0aCBkPSJNOSAyOUwxNCAyMUwyMSAyN0wzNCAxMSIgc3Ryb2tlPSJ1cmwoI2xvZ29HcmFkKSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjM0IiBjeT0iMTEiIHI9IjMiIGZpbGw9IiMwNmI2ZDQiLz48L3N2Zz4=">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="dark-theme">
@@ -16,26 +17,53 @@
   </div>
 
   <header class="app-header">
-    <div class="header-content" style="position: relative;">
-      <!-- Real-time Clock Widget -->
-      <div class="realtime-clock-widget">
-        <div class="pulse-dot"></div>
-        <div class="clock-data">
-          <span class="clock-label">SYSTEM REAL-TIME</span>
-          <span id="realTimeClock" class="clock-value font-mono">--:--:--</span>
+    <div class="header-content-flex">
+      <!-- Left Column: Branding, Tagline & Navigation -->
+      <div class="header-left-col">
+        <div class="logo-area" style="display: flex; align-items: center; gap: 1.1rem;">
+          <div class="logo-icon-svg-wrapper">
+            <svg width="60" height="60" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#06b6d4" />
+                  <stop offset="50%" stop-color="#6366f1" />
+                  <stop offset="100%" stop-color="#d946ef" />
+                </linearGradient>
+                <filter id="logoGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <rect x="3" y="3" width="36" height="36" rx="10" fill="url(#logoGrad)" fill-opacity="0.15" stroke="url(#logoGrad)" stroke-width="1.8" filter="url(#logoGlow)" />
+              <rect x="10" y="22" width="4" height="10" rx="2" fill="#06b6d4" />
+              <rect x="17" y="14" width="4" height="18" rx="2" fill="#6366f1" />
+              <rect x="24" y="10" width="4" height="22" rx="2" fill="#d946ef" />
+              <rect x="31" y="18" width="4" height="14" rx="2" fill="#10b981" />
+              <path d="M8 29L14 21L21 27L34 11" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="34" cy="11" r="3" fill="#06b6d4" />
+            </svg>
+          </div>
+          <h1 style="font-size: 2.6rem; text-align: left; margin: 0;">FudBin <span class="accent-text">Fud Intelligence Hub</span></h1>
+        </div>
+        <p class="subtitle" style="margin: 0.6rem 0 0 0; text-align: left;">Real-time FUD horizon analytics, container grouping, and priority barcode auditing</p>
+        
+        <!-- Premium Navigation Toggle -->
+        <nav style="margin-top: 1.25rem; display: flex; gap: 1rem;">
+          <a href="index.html" class="btn primary-btn" style="text-decoration: none; padding: 0.55rem 1.35rem; font-size: 0.88rem; box-shadow: none;">⚡ FUD Analytics Hub</a>
+          <a href="chart.html" class="btn secondary-btn" style="text-decoration: none; padding: 0.55rem 1.35rem; font-size: 0.88rem;">📈 Distribution Tree</a>
+        </nav>
+      </div>
+
+      <!-- Right Column: Command Center Real-Time Clock Card -->
+      <div class="header-right-col">
+        <div class="realtime-clock-card">
+          <div class="clock-card-header">
+            <div class="pulse-dot"></div>
+            <span class="clock-label">SYSTEM REAL-TIME</span>
+          </div>
+          <div id="realTimeClock" class="clock-value font-mono">--:--:--</div>
         </div>
       </div>
-      <div class="logo-area">
-        <span class="logo-icon">📊</span>
-        <h1>FudBin <span class="accent-text">Histogram Extractor</span></h1>
-      </div>
-      <p class="subtitle">Extract and visualize ASIN stows in real-time across dynamic temporal bins</p>
-      
-      <!-- Premium Navigation Toggle -->
-      <nav style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
-        <a href="index.html" class="btn primary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; box-shadow: none;">📊 Histogram Extractor</a>
-        <a href="chart.html" class="btn secondary-btn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">📈 Distribution Chart</a>
-      </nav>
     </div>
   </header>
 
@@ -141,18 +169,23 @@
       <div class="card-header" style="justify-content: space-between; align-items: center; display: flex;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <div class="header-icon">📦</div>
-          <h2>Augmented Containers</h2>
+          <h2>Addition Containers to Search For...</h2>
         </div>
         <button id="toggleAugmentedListBtn" class="btn secondary-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem;">⚙️ Expand List</button>
       </div>
       <div class="card-body">
-        <p class="section-desc">Manage auxiliary container barcodes to audit during scan audits. Enter comma-separated IDs (stored locally in browser storage).</p>
+        <p class="section-desc">Manage auxiliary container barcodes to audit during scan audits. Enter comma-separated IDs or prefix with <code>group:GroupName</code>. Unassigned totes default to 'Other'.</p>
         
-        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 280px;">
-            <input type="text" id="augmentedInput" placeholder="e.g. tsX000123456, tsX000123457, csX000987654" style="width: 100%; padding: 0.6rem 1rem; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--text-main); outline: none;">
+        <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+          <div style="flex: 2; min-width: 240px;">
+            <label for="augmentedInput" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500; display: block; margin-bottom: 4px;">Container Barcodes (comma-separated)</label>
+            <input type="text" id="augmentedInput" placeholder="e.g. group:Floor2, tsX000123456, tsX000123457" style="width: 100%; padding: 0.6rem 1rem; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--text-main); outline: none;">
           </div>
-          <div style="display: flex; gap: 0.75rem;">
+          <div style="flex: 1; min-width: 180px;">
+            <label for="augmentedGroupInput" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500; display: block; margin-bottom: 4px;">Group Name (Optional)</label>
+            <input type="text" id="augmentedGroupInput" placeholder="e.g. Floor 2 (Default: Other)" style="width: 100%; padding: 0.6rem 1rem; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: var(--text-main); outline: none;">
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-self: flex-end;">
             <button id="addAugmentedBtn" class="btn primary-btn">➕ Add</button>
             <button id="clearAugmentedBtn" class="btn secondary-btn" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">🧹 Clear All</button>
           </div>
@@ -169,15 +202,15 @@
         <div id="augmentedListSection" class="collapsed-list" style="margin-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1.25rem;">
           <div>
             <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Pending Containers</h4>
-            <div id="pendingTotesList" style="display: flex; flex-wrap: wrap; gap: 0.6rem;">
-              <!-- Dynamic pending boxes -->
+            <div id="pendingTotesList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Dynamic pending boxes grouped -->
             </div>
           </div>
           
           <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 1.25rem; padding-top: 1.25rem;">
             <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Found Containers</h4>
-            <div id="foundTotesList" style="display: flex; flex-wrap: wrap; gap: 0.6rem;">
-              <!-- Dynamic found boxes -->
+            <div id="foundTotesList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Dynamic found boxes grouped -->
             </div>
           </div>
         </div>
@@ -188,18 +221,21 @@
     <section id="scannerSection" class="card hidden">
       <!-- Hidden input to lock focus for scanner device key emulation -->
       <input type="text" id="barcodeHiddenInput" style="position: absolute; opacity: 0; pointer-events: none; left: -9999px;" autocomplete="off">
-      <div class="card-header" style="justify-content: space-between; align-items: center; display: flex;">
+      <div class="card-header" style="justify-content: space-between; align-items: center; display: flex; flex-wrap: wrap; gap: 0.75rem;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <div class="header-icon">🛡️</div>
           <h2>Scanner Integration</h2>
         </div>
-        <label class="switch-container">
-          <input type="checkbox" id="scanModeToggle">
-          <span class="switch-slider"></span>
-        </label>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 0.72rem; color: #a1a1aa; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 6px; font-family: var(--font-mono); font-weight: 500;">Shortcut: <kbd style="color: var(--accent-secondary); font-weight: 700; font-family: var(--font-mono);">/</kbd></span>
+          <label class="switch-container" title="Toggle Scan Mode (or press '/' anywhere)">
+            <input type="checkbox" id="scanModeToggle">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
       </div>
       <div class="card-body">
-        <p class="section-desc">Toggle Scan Mode on to intercept keyboard scans from physical handheld barcode devices and check them locally against FUD priority item lists.</p>
+        <p class="section-desc">Toggle Scan Mode on (or press <code style="color: var(--accent-secondary);">/</code> anywhere) to intercept keyboard scans from physical handheld barcode devices and check them locally against FUD priority item lists.</p>
         
         <div style="display: flex; gap: 0.5rem; margin: -0.25rem 0 0.75rem 0; flex-wrap: wrap;">
           <button id="injectTestBtn" class="btn secondary-btn" style="font-size: 0.72rem; padding: 0.25rem 0.6rem; border-color: rgba(6, 182, 212, 0.3); color: var(--accent-secondary);" title="Inject real-time dynamic test barcodes for auditing color flashes">🧪 Inject Test Barcodes</button>
@@ -216,6 +252,7 @@
             <div class="result-body">
               <div class="result-row" id="resAsinRow" style="align-items: flex-start;"><span class="lbl" style="margin-top: 1px;">ASIN(s):</span> <span id="resAsin" class="val highlight" style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">--</span></div>
               <div class="result-row" id="resContainerRow"><span class="lbl">CONTAINER:</span> <span id="resContainer" class="val">--</span></div>
+              <div class="result-row hidden" id="resGroupRow"><span class="lbl">GROUP:</span> <span id="resGroup" class="val highlight" style="color: var(--accent-secondary);">--</span></div>
               <div class="result-row" id="resDeadlineRow"><span class="lbl">DEADLINE:</span> <span id="resDeadline" class="val font-mono">--</span></div>
               <div class="result-row hidden" id="resAugmentedActionRow" style="justify-content: center; margin-top: 0.75rem;">
                 <button id="resRemoveAugmentedBtn" class="btn secondary-btn" style="font-size: 0.75rem; padding: 0.4rem 1rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444; width: 100%;">❌ Remove from Augmented List</button>
@@ -380,6 +417,21 @@
   <footer class="app-footer">
     <p>Advanced Fud Statistics JSON parser</p>
   </footer>
+
+  <!-- CRT Scanline Sci-Fi Priority Scan Overlay Popup -->
+  <div id="priorityScanOverlay" class="scan-crt-overlay hidden">
+    <div class="container">
+      <div class="status-pill">
+        STATUS <span class="flash">■</span>
+      </div>
+      
+      <div class="main-pill-panel">
+        <div class="main-pill-content">
+          <div class="priority">PRIORITY</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
