@@ -208,7 +208,19 @@
           </div>
           
           <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 1.25rem; padding-top: 1.25rem;">
-            <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Found Containers</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <h4 style="font-size: 0.85rem; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">Found Containers</h4>
+            </div>
+            
+            <!-- Found Containers Filter / Flash Input -->
+            <div id="foundFilterContainer" style="margin-bottom: 0.85rem; display: none;">
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="text" id="foundTotesFilterInput" placeholder="Paste / type tsX container IDs to flash match (comma or space separated)..." style="width: 100%; padding: 0.55rem 2.2rem 0.55rem 2.2rem; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--border-radius-sm); color: #fff; font-size: 0.8rem; font-family: var(--font-mono); outline: none;" autocomplete="off">
+                <span style="position: absolute; left: 0.75rem; font-size: 0.85rem; opacity: 0.7; pointer-events: none;">⚡</span>
+                <button id="clearFoundFilterBtn" class="btn secondary-btn" style="position: absolute; right: 4px; padding: 0.2rem 0.5rem; font-size: 0.7rem; border: none; background: rgba(255, 255, 255, 0.15); color: var(--text-muted); display: none;" title="Clear input">Clear</button>
+              </div>
+            </div>
+
             <div id="foundTotesList" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <!-- Dynamic found boxes grouped -->
             </div>
@@ -431,6 +443,11 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Homage to Fred Dibnah (Fixed Bottom-Right Watermark) -->
+  <div class="fred-dibnah-container" title="Homage to Fred Dibnah">
+    <img src="Fred.svg" alt="Fred Dibnah" class="fred-dibnah-svg">
   </div>
 
   <script src="app.js"></script>

@@ -142,6 +142,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
+
+    const foundFilterInput = document.getElementById('foundTotesFilterInput');
+    const clearFoundFilterBtn = document.getElementById('clearFoundFilterBtn');
+    if (foundFilterInput) {
+      foundFilterInput.addEventListener('input', evaluateFoundTotesFilter);
+      foundFilterInput.addEventListener('keyup', evaluateFoundTotesFilter);
+      foundFilterInput.addEventListener('paste', () => setTimeout(evaluateFoundTotesFilter, 10));
+    }
+    if (clearFoundFilterBtn && foundFilterInput) {
+      clearFoundFilterBtn.addEventListener('click', () => {
+        foundFilterInput.value = '';
+        evaluateFoundTotesFilter();
+        foundFilterInput.focus();
+      });
+    }
     
 
 
@@ -1367,7 +1382,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const augMatch = pendingMatch || foundMatch;
 
       if (augMatch) {
+        let isNewlyFound = false;
         if (pendingMatch) {
+          isNewlyFound = true;
           augmentedTotes = augmentedTotes.filter(t => t.id !== query);
           if (!augmentedFoundTotes.some(t => t.id === query)) {
             augmentedFoundTotes.push(augMatch);
@@ -1377,6 +1394,9 @@ document.addEventListener('DOMContentLoaded', () => {
           renderAugmentedLists();
           updateAugmentedReadout();
         }
+
+        // Trigger 3-second flash on the tote box in Found Containers section
+        flashFoundToteBox(query, 3000);
 
         const matchColor = 'var(--accent-secondary)';
         panel.className = 'scan-status-panel match';
@@ -1391,10 +1411,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const groupTitle = augMatch.group || 'Other';
-        text.textContent = `Augmented container detected: "${code}" (Group: ${groupTitle})`;
+        if (isNewlyFound) {
+          text.textContent = `Augmented container detected & moved to found: "${code}" (Group: ${groupTitle})`;
+        } else {
+          text.textContent = `Augmented container confirmed (already in found list): "${code}" (Group: ${groupTitle})`;
+        }
         
         if (resultHeader) {
-          resultHeader.textContent = `AUGMENTED TOTE FOUND (${groupTitle})`;
+          resultHeader.textContent = isNewlyFound ? `AUGMENTED TOTE FOUND (${groupTitle})` : `CONFIRMED FOUND (${groupTitle})`;
           resultHeader.style.color = matchColor;
           resultHeader.style.textShadow = `0 0 10px ${getRgba(matchColor, 0.5)}`;
         }
@@ -1868,6 +1892,7 @@ document.addEventListener('DOMContentLoaded', () => {
       groupItems.forEach(tote => {
         const box = document.createElement('div');
         box.className = isFound ? 'aug-tote-box found' : 'aug-tote-box';
+        box.setAttribute('data-tote-id', tote.id);
 
         const link = document.createElement('a');
         link.href = `https://fcresearch-eu.aka.amazon.com/NCL1/results?s=${tote.id}`;
@@ -1899,6 +1924,73 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pendingTotesList || !foundTotesList) return;
     renderGroupedTotesList(pendingTotesList, augmentedTotes, false);
     renderGroupedTotesList(foundTotesList, augmentedFoundTotes, true);
+    evaluateFoundTotesFilter();
+  }
+
+  // Parse found section filter text box input to continuously flash matching totes
+  function evaluateFoundTotesFilter() {
+    const filterInput = document.getElementById('foundTotesFilterInput');
+    const clearBtn = document.getElementById('clearFoundFilterBtn');
+    const filterContainer = document.getElementById('foundFilterContainer');
+
+    if (filterContainer) {
+      if (augmentedFoundTotes && augmentedFoundTotes.length > 0) {
+        filterContainer.style.display = 'block';
+      } else {
+        filterContainer.style.display = 'none';
+        if (filterInput) filterInput.value = '';
+      }
+    }
+
+    if (!filterInput || !foundTotesList) return;
+
+    const rawVal = filterInput.value.trim();
+    if (clearBtn) {
+      clearBtn.style.display = rawVal.length > 0 ? 'block' : 'none';
+    }
+
+    // Split by commas, spaces, tabs, newlines, trim and uppercase
+    const parsedIds = rawVal
+      ? rawVal.split(/[\s,]+/).map(s => s.trim().toUpperCase()).filter(Boolean)
+      : [];
+
+    const searchSet = new Set(parsedIds);
+
+    const foundToteBoxes = foundTotesList.querySelectorAll('.aug-tote-box');
+    foundToteBoxes.forEach(box => {
+      const toteId = box.getAttribute('data-tote-id');
+      if (toteId && searchSet.size > 0 && searchSet.has(toteId)) {
+        box.classList.add('filter-flashing');
+      } else {
+        box.classList.remove('filter-flashing');
+      }
+    });
+  }
+
+  // Flash a specific tote in the green Found Containers section for 3 seconds
+  function flashFoundToteBox(toteId, durationMs = 3000) {
+    if (!toteId) return;
+    const queryId = toteId.toString().trim().toUpperCase();
+
+    // Auto-expand list section if collapsed so the user can see the flashing tote
+    if (augmentedListSection && augmentedListSection.classList.contains('collapsed-list')) {
+      augmentedListSection.classList.remove('collapsed-list');
+      if (toggleAugmentedListBtn) {
+        toggleAugmentedListBtn.textContent = '⚙️ Collapse List';
+      }
+    }
+
+    setTimeout(() => {
+      if (!foundTotesList) return;
+      const toteBox = foundTotesList.querySelector(`.aug-tote-box[data-tote-id="${queryId}"]`);
+      if (toteBox) {
+        toteBox.classList.add('flash-3s');
+        toteBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(() => {
+          toteBox.classList.remove('flash-3s');
+        }, durationMs);
+      }
+    }, 50);
   }
 
   // Add items from input
